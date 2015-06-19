@@ -13,7 +13,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -30,6 +33,7 @@ public class MainActivityFragment extends Fragment {
     public MainActivityFragment() {
     }
 
+    ArtistListAdapter mArtistListAdapter = null;
     List<ArtistListRow> mArtistList = null;
     ListView mArtistListView = null;
     SpotifyApi mSpotifyApi = null;
@@ -43,14 +47,15 @@ public class MainActivityFragment extends Fragment {
 
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
+        mArtistList = new ArrayList<ArtistListRow>();
         if (mArtistListView == null)
         {
             Log.v(LOG_TAG, "mArtistListView is null!?");
         }
         else
         {
-            ArtistListAdapter adapter = new ArtistListAdapter(getActivity(), mArtistList);
-            mArtistListView.setAdapter(adapter);
+            mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
+            mArtistListView.setAdapter(mArtistListAdapter);
         }
 
         // Setup the TextEdit callback
@@ -63,6 +68,10 @@ public class MainActivityFragment extends Fragment {
                 {
                     updateArtistList(v.getText().toString());
                     handled = true;
+                }
+                else
+                {
+                    Log.v(LOG_TAG, "actionId = " + actionId);
                 }
                 return handled;
             }
@@ -81,41 +90,61 @@ public class MainActivityFragment extends Fragment {
         artistTask.execute(artist);
     }
 
-    private class GetArtistInfoTask extends AsyncTask<String, Void, ArtistsPager>
+    private class GetArtistInfoTask extends AsyncTask<String, Void, List<Artist>>
     {
         private final String LOG_TAG = GetArtistInfoTask.class.getSimpleName();
 
-        protected ArtistsPager doInBackground(String... artist)
+        protected List<Artist> doInBackground(String... artist)
         {
             if (artist.length == 0)
             {
                 return null;
             }
             ArtistsPager p = null;
-            try
-            {
-                p = mSpotify.searchArtists(artist[0]);
-            }
-            catch (Exception e)
-            {
-                Log.e(LOG_TAG, "Execption getting artist info" + e);
-            }
+            List<Artist> allArists = new ArrayList<Artist>();
+            int offset = 0;
+            do {
+                try
+                {
+                    Map<String, Object> options = new HashMap<String, Object>();
 
-            return p;
+                    options.put("offset", Integer.toString(offset));
+
+                    p = mSpotify.searchArtists(artist[0], options);
+
+                    // we just add these artists to the list
+                    allArists.addAll(p.artists.items);
+                    if ((p != null) && (p.artists.next != null))
+                    {
+                        offset += p.artists.limit;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.e(LOG_TAG, "Execption getting artist info" + e);
+                }
+            } while((p != null) && (p.artists.next != null));
+
+            return allArists;
         }
 
         @Override
-        protected void onPostExecute(ArtistsPager p)
+        protected void onPostExecute(List<Artist> artists)
         {
-            super.onPostExecute(p);
+            super.onPostExecute(artists);
 
-            if (p != null)
+            if (artists != null)
             {
-                for (int i = 0; i < p.artists.total; i++)
+                mArtistList.clear();
+
+                for (Artist a: artists)
                 {
-                    Artist a = p.artists.items.get(i);
+                    ArtistListRow rowItem = new ArtistListRow(a.images, a.name);
+                    mArtistList.add(rowItem);
                     Log.v(LOG_TAG, "Artist = " + a.name);
                 }
+                // mArtistListAdapter.setList(artistList);
+                mArtistListAdapter.notifyDataSetChanged();
             }
         }
     }

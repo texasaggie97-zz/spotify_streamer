@@ -8,6 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 /**
@@ -29,6 +31,11 @@ public class ArtistListAdapter extends BaseAdapter
     {
         ImageView imageView;
         TextView txtName;
+    }
+
+    public void setList(List<ArtistListRow> info)
+    {
+        mArtistList = info;
     }
 
     @Override
@@ -78,9 +85,9 @@ public class ArtistListAdapter extends BaseAdapter
 
         ArtistListRow rowItem = (ArtistListRow) getItem(index);
 
-        if (rowItem.getImageId() != -1)
+        if (rowItem.getImage() != null)
         {
-            holder.imageView.setImageResource(rowItem.getImageId());
+            Picasso.with(mContext).load(rowItem.getImage().url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
         }
         holder.txtName.setText(rowItem.getName());
 
