@@ -1,5 +1,6 @@
 package com.markesilva.spotifystreamer;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -56,6 +58,17 @@ public class MainActivityFragment extends Fragment {
         {
             mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
             mArtistListView.setAdapter(mArtistListAdapter);
+            mArtistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    ArtistListRow rowItem = (ArtistListRow) mArtistListAdapter.getItem(position);
+                    String artistName = rowItem.getName();
+                    Intent artistTracksIntent = new Intent(getActivity(), ArtistTracksActivity.class);
+                    artistTracksIntent.putExtra("artistName", artistName);
+                    startActivity(artistTracksIntent);
+                }
+            });
+
         }
 
         // Setup the TextEdit callback
