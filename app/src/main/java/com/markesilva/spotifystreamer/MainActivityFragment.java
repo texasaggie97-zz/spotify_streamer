@@ -13,7 +13,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +28,7 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MainActivityFragment extends Fragment implements View.OnKeyListener {
 
     final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
     public MainActivityFragment() {
@@ -47,16 +46,19 @@ public class MainActivityFragment extends Fragment {
     {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+        mArtistList = new ArrayList<>();
+        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
+        EditText artistName = (EditText) rootView.findViewById(R.id.artist_input);
+        artistName.setOnKeyListener(this);
+
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
-        mArtistList = new ArrayList<ArtistListRow>();
         if (mArtistListView == null)
         {
             Log.v(LOG_TAG, "mArtistListView is null!?");
         }
         else
         {
-            mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
             mArtistListView.setAdapter(mArtistListAdapter);
             mArtistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -68,33 +70,35 @@ public class MainActivityFragment extends Fragment {
                     startActivity(artistTracksIntent);
                 }
             });
-
         }
-
-        // Setup the TextEdit callback
-        EditText editText = (EditText) rootView.findViewById(R.id.artist_input);
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_DONE)
-                {
-                    updateArtistList(v.getText().toString());
-                    handled = true;
-                }
-                else
-                {
-                    Log.v(LOG_TAG, "actionId = " + actionId);
-                }
-                return handled;
-            }
-        });
 
         // Set up Spotify
         mSpotifyApi = new SpotifyApi();
         mSpotify = mSpotifyApi.getService();
 
         return rootView;
+    }
+
+    @Override
+    public boolean onKey(View view, int keyCode, KeyEvent event)
+    {
+        EditText v = (EditText) view;
+        Log.v(LOG_TAG, "A key pressed");
+
+        if (keyCode == EditorInfo.IME_ACTION_SEARCH ||
+                keyCode == EditorInfo.IME_ACTION_DONE ||
+                event.getAction() == KeyEvent.ACTION_DOWN &&
+                        event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
+        {
+            if (!event.isShiftPressed())
+            {
+                Log.v(LOG_TAG, "Enter key pressed");
+                updateArtistList(v.getText().toString());
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void updateArtistList(String artist)
@@ -114,12 +118,12 @@ public class MainActivityFragment extends Fragment {
                 return null;
             }
             ArtistsPager p = null;
-            List<Artist> allArists = new ArrayList<Artist>();
+            List<Artist> allArists = new ArrayList<>();
             int offset = 0;
             do {
                 try
                 {
-                    Map<String, Object> options = new HashMap<String, Object>();
+                    Map<String, Object> options = new HashMap<>();
 
                     options.put("offset", Integer.toString(offset));
 
@@ -127,7 +131,7 @@ public class MainActivityFragment extends Fragment {
 
                     // we just add these artists to the list
                     allArists.addAll(p.artists.items);
-                    if ((p != null) && (p.artists.next != null))
+                    if (p.artists.next != null)
                     {
                         offset += p.artists.limit;
                     }
@@ -156,7 +160,7 @@ public class MainActivityFragment extends Fragment {
                     mArtistList.add(rowItem);
                     Log.v(LOG_TAG, "Artist = " + a.name);
                 }
-                // mArtistListAdapter.setList(artistList);
+                mArtistListAdapter.setList(mArtistList);
                 mArtistListAdapter.notifyDataSetChanged();
             }
         }
