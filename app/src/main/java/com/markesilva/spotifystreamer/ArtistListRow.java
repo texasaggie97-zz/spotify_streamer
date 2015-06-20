@@ -7,30 +7,33 @@ import kaaes.spotify.webapi.android.models.Image;
 
 /**
  * Created by Mark on 6/16/2015.
+ * Items required for each artist returned by search
  */
 public class ArtistListRow
 {
     private String name;
-    private Image image;
+    private String artistId;
+    private Image thumbnail;
 
-    public ArtistListRow(List<Image> images, String name)
+    public ArtistListRow(List<Image> images, String name, String artistId)
     {
-        if (images.size() > 0)
+        this.thumbnail = null;
+        // store the smallest image
+        for (Image i: images)
         {
-            this.image = images.get(0);
-        }
-        else
-        {
-            this.image = null;
+            if ((thumbnail == null) || (i.height < thumbnail.height))
+            {
+                this.thumbnail = i;
+            }
         }
         this.name = name;
+        this.artistId = artistId;
     }
 
     // Get/Set
-    public Image getImage() { return image; }
-    public void setImage(Image image) { this.image = image; }
+    public Image getThumbnail() { return thumbnail; }
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getId() { return artistId; }
 
     @Override
     public String toString()

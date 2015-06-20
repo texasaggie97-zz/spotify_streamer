@@ -14,6 +14,7 @@ import java.util.List;
 
 /**
  * Created by Mark on 6/16/2015.
+ * Adapter for listview
  */
 public class ArtistListAdapter extends BaseAdapter
 {
@@ -67,7 +68,7 @@ public class ArtistListAdapter extends BaseAdapter
     @Override
     public View getView(int index, View convertView, ViewGroup parent)
     {
-        ViewHolder holder = null;
+        ViewHolder holder;
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         if (convertView == null)
@@ -85,9 +86,9 @@ public class ArtistListAdapter extends BaseAdapter
 
         ArtistListRow rowItem = (ArtistListRow) getItem(index);
 
-        if (rowItem.getImage() != null)
+        if (rowItem.getThumbnail() != null)
         {
-            Picasso.with(mContext).load(rowItem.getImage().url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
+            Picasso.with(mContext).load(rowItem.getThumbnail().url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
         }
         holder.txtName.setText(rowItem.getName());
 

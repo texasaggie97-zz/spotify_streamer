@@ -1,8 +1,10 @@
 package com.markesilva.spotifystreamer;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -13,8 +15,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +40,7 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
     ArtistListAdapter mArtistListAdapter = null;
     List<ArtistListRow> mArtistList = null;
     ListView mArtistListView = null;
+    EditText mArtistName = null;
     SpotifyApi mSpotifyApi = null;
     SpotifyService mSpotify = null;
 
@@ -53,8 +56,8 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
         }
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
-        EditText artistName = (EditText) rootView.findViewById(R.id.artist_input);
-        artistName.setOnKeyListener(this);
+        mArtistName = (EditText) rootView.findViewById(R.id.artist_input);
+        mArtistName.setOnKeyListener(this);
 
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
@@ -66,9 +69,9 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     ArtistListRow rowItem = (ArtistListRow) mArtistListAdapter.getItem(position);
-                    String artistName = rowItem.getName();
                     Intent artistTracksIntent = new Intent(getActivity(), ArtistTracksActivity.class);
-                    artistTracksIntent.putExtra("artistName", artistName);
+                    artistTracksIntent.putExtra("artistId", rowItem.getId());
+                    artistTracksIntent.putExtra("artistName", rowItem.getName());
                     startActivity(artistTracksIntent);
                 }
             });
@@ -108,19 +111,42 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
     public void onSaveInstanceState(final Bundle outState)
     {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("list", (Serializable) mArtistList);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void onActivityCreated(Bundle savedInstanceState)
     {
         super.onActivityCreated(savedInstanceState);
+    }
 
-        if (savedInstanceState != null)
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if (mArtistName != null)
         {
-            //probably orientation change
-            mArtistList = (List<ArtistListRow>) savedInstanceState.getSerializable("list");
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("artistName", mArtistName.getText().toString()); // here string is the value you want to save
+            editor.apply();
+        }
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        if (mArtistName != null)
+        {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String artist = settings.getString("artistName", "");
+            if (artist != null) {
+                mArtistName.setText(artist);
+                mArtistName.setSelection(artist.length());
+                if (!artist.equals("")) {
+                    updateArtistList(artist);
+                }
+            }
         }
     }
 
@@ -163,7 +189,7 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
                 {
                     Log.e(LOG_TAG, "Execption getting artist info" + e);
                 }
-            } while((p != null) && (p.artists.next != null));
+            } while((p != null) && (p.artists.next != null) && (offset < 500));
 
             return allArists;
         }
@@ -179,12 +205,21 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
 
                 for (Artist a: artists)
                 {
-                    ArtistListRow rowItem = new ArtistListRow(a.images, a.name);
+                    ArtistListRow rowItem = new ArtistListRow(a.images, a.name, a.id);
                     mArtistList.add(rowItem);
                     Log.v(LOG_TAG, "Artist = " + a.name);
                 }
                 mArtistListAdapter.setList(mArtistList);
                 mArtistListAdapter.notifyDataSetChanged();
+            }
+
+            if ((artists == null) || (artists.size() == 0))
+            {
+                Toast.makeText(getActivity(), "No matching artists found. Please refine your search", Toast.LENGTH_LONG).show();
+            }
+            if ((artists == null) || (artists.size() >= 500))
+            {
+                Toast.makeText(getActivity(), "Showing first 500 matches. Please refine search term", Toast.LENGTH_LONG).show();
             }
         }
     }
