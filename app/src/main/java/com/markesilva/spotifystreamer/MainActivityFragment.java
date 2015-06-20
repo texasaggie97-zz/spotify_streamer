@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,19 +47,20 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
     {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mArtistList = new ArrayList<>();
+        if (mArtistList == null)
+        {
+            mArtistList = new ArrayList<>();
+        }
+
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
         EditText artistName = (EditText) rootView.findViewById(R.id.artist_input);
         artistName.setOnKeyListener(this);
 
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
-        if (mArtistListView == null)
-        {
+        if (mArtistListView == null) {
             Log.v(LOG_TAG, "mArtistListView is null!?");
-        }
-        else
-        {
+        } else {
             mArtistListView.setAdapter(mArtistListAdapter);
             mArtistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -70,12 +72,13 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
                     startActivity(artistTracksIntent);
                 }
             });
+
+            // Set up Spotify
+            mSpotifyApi = new SpotifyApi();
+            mSpotify = mSpotifyApi.getService();
+
+            setRetainInstance(true);
         }
-
-        // Set up Spotify
-        mSpotifyApi = new SpotifyApi();
-        mSpotify = mSpotifyApi.getService();
-
         return rootView;
     }
 
@@ -99,6 +102,26 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
         }
 
         return false;
+    }
+
+    @Override
+    public void onSaveInstanceState(final Bundle outState)
+    {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("list", (Serializable) mArtistList);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null)
+        {
+            //probably orientation change
+            mArtistList = (List<ArtistListRow>) savedInstanceState.getSerializable("list");
+        }
     }
 
     private void updateArtistList(String artist)
