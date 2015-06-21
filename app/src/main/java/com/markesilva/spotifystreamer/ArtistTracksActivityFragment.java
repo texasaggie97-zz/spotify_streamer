@@ -31,10 +31,9 @@ import kaaes.spotify.webapi.android.models.Tracks;
 
 
 /**
- * A placeholder fragment containing a simple view.
+ * Fragment for the top track view.
  */
-public class ArtistTracksActivityFragment extends Fragment
-{
+public class ArtistTracksActivityFragment extends Fragment {
     final private String LOG_TAG = ArtistTracksActivityFragment.class.getSimpleName();
     SpotifyApi mSpotifyApi = null;
     SpotifyService mSpotify = null;
@@ -42,18 +41,15 @@ public class ArtistTracksActivityFragment extends Fragment
     TrackListAdapter mTrackListAdapter = null;
     ListView mTrackListView = null;
 
-    public ArtistTracksActivityFragment()
-    {
+    public ArtistTracksActivityFragment() {
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_artist_tracks, container, false);
 
-        if (mTrackList == null)
-        {
+        if (mTrackList == null) {
             mTrackList = new ArrayList<>();
         }
 
@@ -84,8 +80,7 @@ public class ArtistTracksActivityFragment extends Fragment
             setRetainInstance(true);
         }
         Intent intent = getActivity().getIntent();
-        if ((intent != null) && intent.hasExtra("artistId") && intent.hasExtra("artistName"))
-        {
+        if ((intent != null) && intent.hasExtra("artistId") && intent.hasExtra("artistName")) {
             Log.v(LOG_TAG, "Starting from intent: " + intent.getStringExtra("artistName"));
             ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(intent.getStringExtra("artistName"));
             updateTrackList(intent.getStringExtra("artistId"));
@@ -94,46 +89,43 @@ public class ArtistTracksActivityFragment extends Fragment
         return rootView;
     }
 
+    // onSaveInstanceState and onActivityCreated with no additional items is enough to handle
+    // rotation and not emptying the list
     @Override
-    public void onSaveInstanceState(final Bundle outState)
-    {
+    public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void onActivityCreated(Bundle savedInstanceState)
-    {
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
     }
 
-    private void updateTrackList(String artist)
-    {
+    private void updateTrackList(String artist) {
         GetTrackInfoTask trackTask = new GetTrackInfoTask();
         trackTask.execute(artist);
     }
 
-    private class GetTrackInfoTask extends AsyncTask<String, Void, Tracks>
-    {
+    // We need to do the actual web query on a thread other than the UI thread. We use AsyncTask for this
+    private class GetTrackInfoTask extends AsyncTask<String, Void, Tracks> {
         private final String LOG_TAG = GetTrackInfoTask.class.getSimpleName();
 
-        protected Tracks doInBackground(String... artist)
-        {
-            if (artist.length == 0)
-            {
+        protected Tracks doInBackground(String... artistId) {
+            // If we didn;t get an artist ID then we have nothing to do
+            if (artistId.length == 0) {
                 return null;
             }
             Tracks p = null;
 
-            try
-            {
+            try {
                 Map<String, Object> options = new HashMap<>();
 
+                // We are being very US centric here. This should come from settings or using
+                // some other method for determining location
                 options.put("country", "US");
-                p = mSpotify.getArtistTopTrack(artist[0], options);
-            }
-            catch (Exception e)
-            {
+                p = mSpotify.getArtistTopTrack(artistId[0], options);
+            } catch (Exception e) {
                 Log.e(LOG_TAG, "Execption getting artist info" + e);
             }
 
@@ -141,17 +133,15 @@ public class ArtistTracksActivityFragment extends Fragment
         }
 
         @Override
-        protected void onPostExecute(Tracks tracks)
-        {
+        protected void onPostExecute(Tracks tracks) {
             super.onPostExecute(tracks);
 
-            if (tracks != null)
-            {
+            if (tracks != null) {
                 mTrackList.clear();
 
-                for (Track t: tracks.tracks)
-                {
-                    TrackListRow rowItem = new TrackListRow(t.album.images, t.album.name, t.name);
+                // for each track returned, add to the internal list
+                for (Track t : tracks.tracks) {
+                    TrackListRow rowItem = new TrackListRow(t.album.images, t.album.name, t.name, t.preview_url);
                     mTrackList.add(rowItem);
                     Log.v(LOG_TAG, "Track = " + t.name);
                 }
@@ -159,126 +149,124 @@ public class ArtistTracksActivityFragment extends Fragment
                 mTrackListAdapter.notifyDataSetChanged();
             }
 
-            if ((tracks == null) || (tracks.tracks.size() == 0))
-            {
+            if ((tracks == null) || (tracks.tracks.size() == 0)) {
                 Toast.makeText(getActivity(), "No tracks for selected artist found. Please try again.", Toast.LENGTH_LONG).show();
             }
         }
     }
 
-    private class TrackListRow
-    {
+    // Container for all information we need for top tracks for an artist
+    private class TrackListRow {
         private String album;
         private String track;
+        private String previewURL;
         private Image image;
         private Image thumbnail;
 
-        public TrackListRow(List<Image> images, String album, String track)
-        {
+        public TrackListRow(List<Image> images, String album, String track, String previewURL) {
             this.image = null;
             this.thumbnail = null;
-            // store the smallest image
-            for (Image i: images)
-            {
-                if ((image == null) || (i.height > image.height))
-                {
+            for (Image i : images) {
+                // store the largest image for playback
+                if ((image == null) || (i.height > image.height)) {
                     this.image = i;
                 }
-                if ((thumbnail == null) || (i.height < thumbnail.height))
-                {
+                // store the smallest image that is still at least 75 pixels tall, for the list of tracks
+                if ((thumbnail == null) || ((i.height < thumbnail.height) && (i.height > 75))) {
                     this.thumbnail = i;
                 }
             }
             this.album = album;
             this.track = track;
+            this.previewURL = previewURL;
         }
 
         // Get/Set
-        public Image getImage() { return image; }
-        public Image getThumbnail() { return thumbnail; }
-        public String getAlbum() { return album; }
-        public String getTrack() { return track; }
+        public Image getImage() {
+            return image;
+        }
+
+        public Image getThumbnail() {
+            return thumbnail;
+        }
+
+        public String getAlbum() {
+            return album;
+        }
+
+        public String getTrack() {
+            return track;
+        }
+
+        public String getPreviewURL() {
+            return previewURL;
+        }
 
         @Override
-        public String toString()
-        {
+        public String toString() {
             return album + "/" + track;
         }
     }
 
-    private class TrackListAdapter extends BaseAdapter
-    {
+    // listview adapter for track list
+    private class TrackListAdapter extends BaseAdapter {
         List<TrackListRow> mTrackList = null;
         Context mContext = null;
 
-        public TrackListAdapter(Context c, List<TrackListRow> info)
-        {
+        public TrackListAdapter(Context c, List<TrackListRow> info) {
             mContext = c;
             mTrackList = info;
         }
 
         // private view holder class
-        private class ViewHolder
-        {
+        private class ViewHolder {
             ImageView imageView;
             TextView txtAlbum;
             TextView txtTrack;
         }
 
-        public void setList(List<TrackListRow> info)
-        {
+        public void setList(List<TrackListRow> info) {
             mTrackList = info;
         }
 
         @Override
-        public int getCount()
-        {
-            if (mTrackList != null)
-            {
+        public int getCount() {
+            if (mTrackList != null) {
                 return mTrackList.size();
-            }
-            else
-            {
+            } else {
                 return 0;
             }
         }
 
         @Override
-        public Object getItem(int index)
-        {
+        public Object getItem(int index) {
             return mTrackList.get(index);
         }
 
         @Override
-        public long getItemId(int index)
-        {
+        public long getItemId(int index) {
             return mTrackList.indexOf(getItem(index));
         }
 
         @Override
-        public View getView(int index, View convertView, ViewGroup parent)
-        {
+        public View getView(int index, View convertView, ViewGroup parent) {
             ViewHolder holder;
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-            if (convertView == null)
-            {
+            if (convertView == null) {
                 convertView = inflater.inflate(R.layout.track_listitem, null);
                 holder = new ViewHolder();
                 holder.txtAlbum = (TextView) convertView.findViewById(R.id.track_listitem_album);
                 holder.txtTrack = (TextView) convertView.findViewById(R.id.track_listitem_track);
                 holder.imageView = (ImageView) convertView.findViewById(R.id.track_listitem_image);
                 convertView.setTag(holder);
-            }
-            else
-            {
+            } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
             TrackListRow rowItem = (TrackListRow) getItem(index);
 
-            if (rowItem.getImage() != null)
-            {
+            if (rowItem.getImage() != null) {
                 Picasso.with(mContext).load(rowItem.getThumbnail().url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
             }
             holder.txtAlbum.setText(rowItem.getAlbum());

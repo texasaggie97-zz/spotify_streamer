@@ -34,6 +34,7 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 public class MainActivityFragment extends Fragment implements View.OnKeyListener {
 
     final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
+
     public MainActivityFragment() {
     }
 
@@ -46,12 +47,10 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        if (mArtistList == null)
-        {
+        if (mArtistList == null) {
             mArtistList = new ArrayList<>();
         }
 
@@ -86,18 +85,15 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
     }
 
     @Override
-    public boolean onKey(View view, int keyCode, KeyEvent event)
-    {
+    public boolean onKey(View view, int keyCode, KeyEvent event) {
         EditText v = (EditText) view;
         Log.v(LOG_TAG, "A key pressed");
 
         if (keyCode == EditorInfo.IME_ACTION_SEARCH ||
                 keyCode == EditorInfo.IME_ACTION_DONE ||
                 event.getAction() == KeyEvent.ACTION_DOWN &&
-                        event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
-        {
-            if (!event.isShiftPressed())
-            {
+                        event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+            if (!event.isShiftPressed()) {
                 Log.v(LOG_TAG, "Enter key pressed");
                 updateArtistList(v.getText().toString());
                 return true;
@@ -107,24 +103,25 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
         return false;
     }
 
+    // onSaveInstanceState and onActivityCreated with no additional items is enough to handle
+    // rotation and not emptying the list
     @Override
-    public void onSaveInstanceState(final Bundle outState)
-    {
+    public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState)
-    {
+    public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
     }
 
+    // Up button resets the activity so we lose any information when returning using that method.
+    // To work around this, we store the artist name on pause, and on resume, if there is a stored artist
+    // name, we put it in the text edit control, move the cursor to the end of the name, and reload the search results
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
-        if (mArtistName != null)
-        {
+        if (mArtistName != null) {
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
             SharedPreferences.Editor editor = settings.edit();
             editor.putString("artistName", mArtistName.getText().toString()); // here string is the value you want to save
@@ -133,11 +130,9 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
-        if (mArtistName != null)
-        {
+        if (mArtistName != null) {
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
             String artist = settings.getString("artistName", "");
             if (artist != null) {
@@ -150,28 +145,24 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
         }
     }
 
-    private void updateArtistList(String artist)
-    {
+    private void updateArtistList(String artist) {
         GetArtistInfoTask artistTask = new GetArtistInfoTask();
         artistTask.execute(artist);
     }
 
-    private class GetArtistInfoTask extends AsyncTask<String, Void, List<Artist>>
-    {
+    // We need to do the actual web query on a thread other than the UI thread. We use AsyncTask for this
+    private class GetArtistInfoTask extends AsyncTask<String, Void, List<Artist>> {
         private final String LOG_TAG = GetArtistInfoTask.class.getSimpleName();
 
-        protected List<Artist> doInBackground(String... artist)
-        {
-            if (artist.length == 0)
-            {
+        protected List<Artist> doInBackground(String... artist) {
+            if (artist.length == 0) {
                 return null;
             }
             ArtistsPager p = null;
             List<Artist> allArists = new ArrayList<>();
             int offset = 0;
             do {
-                try
-                {
+                try {
                     Map<String, Object> options = new HashMap<>();
 
                     options.put("offset", Integer.toString(offset));
@@ -180,31 +171,25 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
 
                     // we just add these artists to the list
                     allArists.addAll(p.artists.items);
-                    if (p.artists.next != null)
-                    {
+                    if (p.artists.next != null) {
                         offset += p.artists.limit;
                     }
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     Log.e(LOG_TAG, "Execption getting artist info" + e);
                 }
-            } while((p != null) && (p.artists.next != null) && (offset < 500));
+            } while ((p != null) && (p.artists.next != null) && (offset < 500));
 
             return allArists;
         }
 
         @Override
-        protected void onPostExecute(List<Artist> artists)
-        {
+        protected void onPostExecute(List<Artist> artists) {
             super.onPostExecute(artists);
 
-            if (artists != null)
-            {
+            if (artists != null) {
                 mArtistList.clear();
 
-                for (Artist a: artists)
-                {
+                for (Artist a : artists) {
                     ArtistListRow rowItem = new ArtistListRow(a.images, a.name, a.id);
                     mArtistList.add(rowItem);
                     Log.v(LOG_TAG, "Artist = " + a.name);
@@ -213,12 +198,10 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
                 mArtistListAdapter.notifyDataSetChanged();
             }
 
-            if ((artists == null) || (artists.size() == 0))
-            {
+            if ((artists == null) || (artists.size() == 0)) {
                 Toast.makeText(getActivity(), "No matching artists found. Please refine your search", Toast.LENGTH_LONG).show();
             }
-            if ((artists == null) || (artists.size() >= 500))
-            {
+            if ((artists == null) || (artists.size() >= 500)) {
                 Toast.makeText(getActivity(), "Showing first 500 matches. Please refine search term", Toast.LENGTH_LONG).show();
             }
         }
