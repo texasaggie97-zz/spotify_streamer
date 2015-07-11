@@ -26,6 +26,7 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import retrofit.RetrofitError;
 
 
 /**
@@ -174,7 +175,7 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
                     if (p.artists.next != null) {
                         offset += p.artists.limit;
                     }
-                } catch (Exception e) {
+                } catch (RetrofitError e) {
                     Log.e(LOG_TAG, "Execption getting artist info" + e);
                 }
             } while ((p != null) && (p.artists.next != null) && (offset < 500));

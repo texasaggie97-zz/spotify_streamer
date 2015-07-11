@@ -17,8 +17,8 @@ import java.util.List;
  * listview adapter artist search results
  */
 public class ArtistListAdapter extends BaseAdapter {
-    List<ArtistListRow> mArtistList = null;
-    Context mContext = null;
+    private List<ArtistListRow> mArtistList = null;
+    private Context mContext = null;
 
     public ArtistListAdapter(Context c, List<ArtistListRow> info) {
         mContext = c;
