@@ -7,11 +7,9 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -32,7 +30,7 @@ import retrofit.RetrofitError;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment implements View.OnKeyListener {
+public class MainActivityFragment extends Fragment {
 
     final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
 
@@ -46,6 +44,13 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
     SpotifyApi mSpotifyApi = null;
     SpotifyService mSpotify = null;
 
+    public interface Callback {
+        /**
+         * We need to the our activity who we are
+         */
+        public void setArtistListFragment(MainActivityFragment frag);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -55,9 +60,10 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
             mArtistList = new ArrayList<>();
         }
 
+        // Tell the main activity who we are so they can tell us when to update the artist list
+        ((Callback) getActivity()).setArtistListFragment(this);
+
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
-        mArtistName = (EditText) rootView.findViewById(R.id.artist_input);
-        mArtistName.setOnKeyListener(this);
 
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
@@ -83,25 +89,6 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
             setRetainInstance(true);
         }
         return rootView;
-    }
-
-    @Override
-    public boolean onKey(View view, int keyCode, KeyEvent event) {
-        EditText v = (EditText) view;
-        Log.v(LOG_TAG, "A key pressed");
-
-        if (keyCode == EditorInfo.IME_ACTION_SEARCH ||
-                keyCode == EditorInfo.IME_ACTION_DONE ||
-                event.getAction() == KeyEvent.ACTION_DOWN &&
-                        event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-            if (!event.isShiftPressed()) {
-                Log.v(LOG_TAG, "Enter key pressed");
-                updateArtistList(v.getText().toString());
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // onSaveInstanceState and onActivityCreated with no additional items is enough to handle
@@ -146,7 +133,7 @@ public class MainActivityFragment extends Fragment implements View.OnKeyListener
         }
     }
 
-    private void updateArtistList(String artist) {
+    public void updateArtistList(String artist) {
         GetArtistInfoTask artistTask = new GetArtistInfoTask();
         artistTask.execute(artist);
     }
