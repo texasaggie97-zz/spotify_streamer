@@ -1,7 +1,6 @@
 package com.markesilva.spotifystreamer;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -35,11 +34,15 @@ import kaaes.spotify.webapi.android.models.Tracks;
  */
 public class ArtistTracksActivityFragment extends Fragment {
     final private String LOG_TAG = ArtistTracksActivityFragment.class.getSimpleName();
+    static final String ARTIST_NAME = "artistname";
+    static final String ARTIST_ID = "artistid";
     SpotifyApi mSpotifyApi = null;
     SpotifyService mSpotify = null;
     List<TrackListRow> mTrackList = null;
     TrackListAdapter mTrackListAdapter = null;
     ListView mTrackListView = null;
+    String mArtistName;
+    String mArtistId;
 
     public ArtistTracksActivityFragment() {
     }
@@ -79,11 +82,15 @@ public class ArtistTracksActivityFragment extends Fragment {
 
             setRetainInstance(true);
         }
-        Intent intent = getActivity().getIntent();
-        if ((intent != null) && intent.hasExtra("artistId") && intent.hasExtra("artistName")) {
-            Log.v(LOG_TAG, "Starting from intent: " + intent.getStringExtra("artistName"));
-            ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(intent.getStringExtra("artistName"));
-            updateTrackList(intent.getStringExtra("artistId"));
+
+        Bundle args = getArguments();
+        if (args != null) {
+            mArtistName = args.getString(ARTIST_NAME);
+            mArtistId = args.getString(ARTIST_ID);
+
+            Log.v(LOG_TAG, "Starting from intent: " + mArtistName);
+            ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(mArtistName);
+            updateTrackList(mArtistId);
         }
 
         return rootView;

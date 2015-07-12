@@ -12,6 +12,21 @@ public class ArtistTracksActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist_tracks);
+
+        if (savedInstanceState == null) {
+            // Create the fragment and add it
+
+            Bundle args = new Bundle();
+            args.putString(ArtistTracksActivityFragment.ARTIST_NAME, getIntent().getStringExtra(ArtistTracksActivityFragment.ARTIST_NAME));
+            args.putString(ArtistTracksActivityFragment.ARTIST_ID, getIntent().getStringExtra(ArtistTracksActivityFragment.ARTIST_ID));
+
+            ArtistTracksActivityFragment frag = new ArtistTracksActivityFragment();
+            frag.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.artist_tracks_container, frag)
+                    .commit();
+        }
     }
 
 

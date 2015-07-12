@@ -1,6 +1,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_activity_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -10,7 +11,7 @@
     android:orientation="vertical"
     tools:context=".MainActivityFragment">
 
-    <EditText
+    <SearchView
         android:id="@+id/artist_input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
