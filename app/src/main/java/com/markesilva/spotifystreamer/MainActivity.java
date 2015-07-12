@@ -6,12 +6,17 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.SearchView;
+import android.widget.Toast;
 
 
 public class MainActivity extends ActionBarActivity implements MainActivityFragment.Callback {
 
     final private String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String ARTISTTRACKFRAGMENT_TAG = "ATFTAG";
+    private MainActivityFragment mFrag;
+    private SearchView mSearch;
 
     private boolean mTwoPane;
 
@@ -19,6 +24,35 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mSearch = (SearchView) findViewById(R.id.artist_input);
+        mSearch.setQueryHint(getResources().getString(R.string.search_hint));
+
+        mSearch.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                Toast.makeText(getBaseContext(), String.valueOf(hasFocus), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        mSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Toast.makeText(getBaseContext(), query, Toast.LENGTH_SHORT).show();
+                if (mFrag != null) {
+                    mFrag.updateArtistList(query);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (mFrag != null) {
+                    mFrag.updateArtistList(newText);
+                }
+                return false;
+            }
+        });
 
         if (findViewById(R.id.artist_tracks_container) != null) {
             // This view will only be present in large screens (res/layout-sw600dp)
@@ -34,6 +68,11 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
             getSupportActionBar().setElevation(0f);
         }
     }
+
+    public void setArtistListFragment(MainActivityFragment frag) {
+        mFrag = frag;
+    }
+
 
     @Override
     public void onNewIntent(Intent intent) {

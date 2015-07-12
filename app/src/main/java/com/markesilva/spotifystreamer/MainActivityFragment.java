@@ -1,16 +1,13 @@
 package com.markesilva.spotifystreamer;
 
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -34,15 +31,20 @@ public class MainActivityFragment extends Fragment {
     final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
 
     public interface Callback {
+        // The activity needs to be the one to dispatch this since it can be to another
+        // activity via and intent or updating a different fragment in twopane mode
         public void onItemSelected(ArtistListRow a);
+
+        // We need to tell the activity who we are
+        public void setArtistListFragment(MainActivityFragment frag);
     }
+
     public MainActivityFragment() {
     }
 
     ArtistListAdapter mArtistListAdapter = null;
     List<ArtistListRow> mArtistList = null;
     ListView mArtistListView = null;
-    EditText mArtistName = null;
     SpotifyApi mSpotifyApi = null;
     SpotifyService mSpotify = null;
 
@@ -55,8 +57,10 @@ public class MainActivityFragment extends Fragment {
             mArtistList = new ArrayList<>();
         }
 
+        // Tell the main activity who we are so they can tell us when to update the artist list
+        ((Callback) getActivity()).setArtistListFragment(this);
+
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
-        mArtistName = (EditText) rootView.findViewById(R.id.artist_input);
 
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
@@ -91,36 +95,6 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-    }
-
-    // Up button resets the activity so we lose any information when returning using that method.
-    // To work around this, we store the artist name on pause, and on resume, if there is a stored artist
-    // name, we put it in the text edit control, move the cursor to the end of the name, and reload the search results
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (mArtistName != null) {
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString("artistName", mArtistName.getText().toString()); // here string is the value you want to save
-            editor.apply();
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (mArtistName != null) {
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String artist = settings.getString("artistName", "");
-            if (artist != null) {
-                mArtistName.setText(artist);
-                mArtistName.setSelection(artist.length());
-                if (!artist.equals("")) {
-                    updateArtistList(artist);
-                }
-            }
-        }
     }
 
     public void updateArtistList(String artist) {
