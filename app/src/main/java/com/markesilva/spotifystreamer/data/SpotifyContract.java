@@ -42,6 +42,7 @@ public class SpotifyContract {
     // looking at weather data. content://com.example.android.sunshine.app/givemeroot/ will fail,
     // as the ContentProvider hasn't been given any information on what to do with "givemeroot".
     // At least, let's hope not.  Don't be that dev, reader.  Don't be that dev.
+    public static final String PATH_QUERIES = "queries";
     public static final String PATH_ARTISTS = "artists";
     public static final String PATH_TRACKS = "tracks";
 
@@ -55,7 +56,31 @@ public class SpotifyContract {
         return time.setJulianDay(julianDay);
     }
 
-    /* Inner class that defines the table contents of the location table */
+    /* Inner class that defines the table contents of the search query table */
+    public static final class SearchQueryEntry implements BaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_QUERIES).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_QUERIES;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_QUERIES;
+
+        // Table name
+        public static final String TABLE_NAME = "queries";
+
+        // The search query that found the artist in this row
+        public static final String COLUMN_QUERY_STRING = "query_string";
+
+        // Date/Time of when the query was done
+        public static final String COLUMN_QUERY_TIME = "query_time";
+
+        public static Uri buildQueriesUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
+
+    /* Inner class that defines the table contents of the artist table */
     public static final class ArtistEntry implements BaseColumns {
 
         public static final Uri CONTENT_URI =
@@ -69,23 +94,23 @@ public class SpotifyContract {
         // Table name
         public static final String TABLE_NAME = "artists";
 
-        // The search query that found the artist in this row
-        public static final String COLUMN_SEARCH_QUERY = "search_query";
+        // Id of the search query
+        public static final String COLUMN_SEARCH_ID = "search_id";
 
         public static final String COLUMN_ARTIST_NAME = "artist_name";
 
         // Spotify id for this artist
-        public static final String COLUMN_ARTISTS_ID = "artist_id";
+        public static final String COLUMN_ARTIST_SPOTIFY_ID = "artist_id";
 
         // Artist thumbnail url.
-        public static final String COLUMN_THUMBNAIL_URL = "thumbnail_url";
+        public static final String COLUMN_THUMBNAIL_URL = "artist_thumbnail_url";
 
         public static Uri buildArtistUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
 
-    /* Inner class that defines the table contents of the weather table */
+    /* Inner class that defines the table contents of the track table */
     public static final class TrackEntry implements BaseColumns {
 
         public static final Uri CONTENT_URI =
@@ -98,71 +123,60 @@ public class SpotifyContract {
 
         public static final String TABLE_NAME = "top_tracks";
 
-        // Column with the foreign key into the location table.
-        public static final String COLUMN_LOC_KEY = "location_id";
-        // Date, stored as long in milliseconds since the epoch
-        public static final String COLUMN_DATE = "date";
-        // Weather id as returned by API, to identify the icon to be used
-        public static final String COLUMN_WEATHER_ID = "weather_id";
+        // Spotify id for this artist
+        public static final String COLUMN_ARTIST_ID = "artist_id";
 
-        // Short description and long description of the weather, as provided by API.
-        // e.g "clear" vs "sky is clear".
-        public static final String COLUMN_SHORT_DESC = "short_desc";
+        // Id of the search query
+        public static final String COLUMN_SEARCH_ID = "search_id";
 
-        // Min and max temperatures for the day (stored as floats)
-        public static final String COLUMN_MIN_TEMP = "min";
-        public static final String COLUMN_MAX_TEMP = "max";
+        // Track thumbnail url.
+        public static final String COLUMN_THUMBNAIL_URL = "track_thumbnail_url";
+        // Track image url.
+        public static final String COLUMN_IMAGE_URL = "image_url";
 
-        // Humidity is stored as a float representing percentage
-        public static final String COLUMN_HUMIDITY = "humidity";
-
-        // Humidity is stored as a float representing percentage
-        public static final String COLUMN_PRESSURE = "pressure";
-
-        // Windspeed is stored as a float representing windspeed  mph
-        public static final String COLUMN_WIND_SPEED = "wind";
-
-        // Degrees are meteorological degrees (e.g, 0 is north, 180 is south).  Stored as floats.
-        public static final String COLUMN_DEGREES = "degrees";
+        // Album name
+        public static final String COLUMN_ALBUM_NAME = "album_name";
+        // Track name
+        public static final String COLUMN_TRACK_NAME = "track_name";
 
         public static Uri buildWeatherUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        /*
-            Student: This is the buildWeatherLocation function you filled in.
-         */
-        public static Uri buildWeatherLocation(String locationSetting) {
-            return CONTENT_URI.buildUpon().appendPath(locationSetting).build();
-        }
-
-        public static Uri buildWeatherLocationWithStartDate(
-                String locationSetting, long startDate) {
-            long normalizedDate = normalizeDate(startDate);
-            return CONTENT_URI.buildUpon().appendPath(locationSetting)
-                    .appendQueryParameter(COLUMN_DATE, Long.toString(normalizedDate)).build();
-        }
-
-        public static Uri buildWeatherLocationWithDate(String locationSetting, long date) {
-            return CONTENT_URI.buildUpon().appendPath(locationSetting)
-                    .appendPath(Long.toString(normalizeDate(date))).build();
-        }
-
-        public static String getLocationSettingFromUri(Uri uri) {
-            return uri.getPathSegments().get(1);
-        }
-
-        public static long getDateFromUri(Uri uri) {
-            return Long.parseLong(uri.getPathSegments().get(2));
-        }
-
-        public static long getStartDateFromUri(Uri uri) {
-            String dateString = uri.getQueryParameter(COLUMN_DATE);
-            if (null != dateString && dateString.length() > 0)
-                return Long.parseLong(dateString);
-            else
-                return 0;
-        }
+//        /*
+//            Student: This is the buildWeatherLocation function you filled in.
+//         */
+//        public static Uri buildWeatherLocation(String locationSetting) {
+//            return CONTENT_URI.buildUpon().appendPath(locationSetting).build();
+//        }
+//
+//        public static Uri buildWeatherLocationWithStartDate(
+//                String locationSetting, long startDate) {
+//            long normalizedDate = normalizeDate(startDate);
+//            return CONTENT_URI.buildUpon().appendPath(locationSetting)
+//                    .appendQueryParameter(COLUMN_DATE, Long.toString(normalizedDate)).build();
+//        }
+//
+//        public static Uri buildWeatherLocationWithDate(String locationSetting, long date) {
+//            return CONTENT_URI.buildUpon().appendPath(locationSetting)
+//                    .appendPath(Long.toString(normalizeDate(date))).build();
+//        }
+//
+//        public static String getLocationSettingFromUri(Uri uri) {
+//            return uri.getPathSegments().get(1);
+//        }
+//
+//        public static long getDateFromUri(Uri uri) {
+//            return Long.parseLong(uri.getPathSegments().get(2));
+//        }
+//
+//        public static long getStartDateFromUri(Uri uri) {
+//            String dateString = uri.getQueryParameter(COLUMN_DATE);
+//            if (null != dateString && dateString.length() > 0)
+//                return Long.parseLong(dateString);
+//            else
+//                return 0;
+//        }
     }
 }
 
