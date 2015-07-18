@@ -1,4 +1,4 @@
-package com.markesilva.spotifystreamer.Data2;
+package com.markesilva.spotifystreamer.data;
 
 /*
  * Copyright (C) 2014 The Android Open Source Project
