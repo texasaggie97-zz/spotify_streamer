@@ -147,7 +147,7 @@ public class MainActivityFragment extends Fragment {
                 return null;
             }
             ArtistsPager p = null;
-            List<Artist> allArists = new ArrayList<>();
+            List<Artist> allArtists = new ArrayList<>();
             int offset = 0;
             do {
                 try {
@@ -158,7 +158,7 @@ public class MainActivityFragment extends Fragment {
                     p = mSpotify.searchArtists(artist[0], options);
 
                     // we just add these artists to the list
-                    allArists.addAll(p.artists.items);
+                    allArtists.addAll(p.artists.items);
                     if (p.artists.next != null) {
                         offset += p.artists.limit;
                     }
@@ -167,7 +167,7 @@ public class MainActivityFragment extends Fragment {
                 }
             } while ((p != null) && (p.artists.next != null) && (offset < 500));
 
-            return allArists;
+            return allArtists;
         }
 
         @Override
