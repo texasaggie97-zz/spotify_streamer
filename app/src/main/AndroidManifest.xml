@@ -38,6 +38,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.markesilva.spotifystreamer.MainActivity" />
         </activity>
+        <provider
+            android:authorities="com.markesilva.spotifystreamer"
+            android:name=".data.SpotifyProvider" />
     </application>
 
 </manifest>

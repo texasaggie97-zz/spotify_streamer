@@ -78,6 +78,10 @@ public class SpotifyContract {
         public static Uri buildQueriesUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+        public static Uri buildQueriesWithQuery(String q) {
+            return CONTENT_URI.buildUpon().appendPath(q).build();
+        }
     }
 
     /* Inner class that defines the table contents of the artist table */
@@ -107,6 +111,10 @@ public class SpotifyContract {
 
         public static Uri buildArtistUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        public static Uri buildArtistWithArtist(String a) {
+            return CONTENT_URI.buildUpon().appendPath(a).build();
         }
     }
 
@@ -139,10 +147,13 @@ public class SpotifyContract {
         // Track name
         public static final String COLUMN_TRACK_NAME = "track_name";
 
-        public static Uri buildWeatherUri(long id) {
+        public static Uri buildTrackUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+        public static Uri buildTrackWithTrack(String t) {
+            return CONTENT_URI.buildUpon().appendPath(t).build();
+        }
 //        /*
 //            Student: This is the buildWeatherLocation function you filled in.
 //         */
