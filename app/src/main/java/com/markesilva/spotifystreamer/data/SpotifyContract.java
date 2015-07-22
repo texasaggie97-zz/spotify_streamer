@@ -43,8 +43,11 @@ public class SpotifyContract {
     // as the ContentProvider hasn't been given any information on what to do with "givemeroot".
     // At least, let's hope not.  Don't be that dev, reader.  Don't be that dev.
     public static final String PATH_QUERIES = "queries";
+    public static final String PATH_QUERY = "query";
     public static final String PATH_ARTISTS = "artists";
+    public static final String PATH_ARTIST = "artist";
     public static final String PATH_TRACKS = "tracks";
+    public static final String PATH_TRACK = "track";
 
     // To make it easy to query for the exact date, we normalize all dates that go into
     // the database to the start of the the Julian day at UTC.
@@ -82,6 +85,10 @@ public class SpotifyContract {
         public static Uri buildQueriesWithQuery(String q) {
             return CONTENT_URI.buildUpon().appendPath(q).build();
         }
+
+        public static String getQueryFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
     }
 
     /* Inner class that defines the table contents of the artist table */
@@ -89,6 +96,12 @@ public class SpotifyContract {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ARTISTS).build();
+
+        public static final Uri CONTENT_URI_WITH_QUERY =
+                CONTENT_URI.buildUpon().appendPath(PATH_QUERY).build();
+
+        public static final Uri CONTENT_URI_WITH_ARTIST =
+                CONTENT_URI.buildUpon().appendPath(PATH_ARTIST).build();
 
         public static final String CONTENT_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ARTISTS;
@@ -99,12 +112,12 @@ public class SpotifyContract {
         public static final String TABLE_NAME = "artists";
 
         // Id of the search query
-        public static final String COLUMN_SEARCH_ID = "search_id";
+        public static final String COLUMN_SEARCH_ID = "artist_search_id";
 
         public static final String COLUMN_ARTIST_NAME = "artist_name";
 
         // Spotify id for this artist
-        public static final String COLUMN_ARTIST_SPOTIFY_ID = "artist_id";
+        public static final String COLUMN_ARTIST_SPOTIFY_ID = "spotify_artist_id";
 
         // Artist thumbnail url.
         public static final String COLUMN_THUMBNAIL_URL = "artist_thumbnail_url";
@@ -113,8 +126,20 @@ public class SpotifyContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildArtistWithArtist(String a) {
-            return CONTENT_URI.buildUpon().appendPath(a).build();
+        public static Uri buildArtistsWithQuery(String q) {
+            return CONTENT_URI_WITH_QUERY.buildUpon().appendPath(q).build();
+        }
+
+        public static Uri buildArtistsWithArtist(String a) {
+            return CONTENT_URI_WITH_ARTIST.buildUpon().appendPath(a).build();
+        }
+
+        public static String getArtistFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
+
+        public static String getQueryFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
         }
     }
 
@@ -124,6 +149,12 @@ public class SpotifyContract {
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRACKS).build();
 
+        public static final Uri CONTENT_URI_WITH_QUERY =
+                CONTENT_URI.buildUpon().appendPath(PATH_QUERY).build();
+
+        public static final Uri CONTENT_URI_WITH_ARTIST =
+                CONTENT_URI.buildUpon().appendPath(PATH_ARTIST).build();
+
         public static final String CONTENT_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_TRACKS;
         public static final String CONTENT_ITEM_TYPE =
@@ -132,10 +163,10 @@ public class SpotifyContract {
         public static final String TABLE_NAME = "top_tracks";
 
         // Spotify id for this artist
-        public static final String COLUMN_ARTIST_ID = "artist_id";
+        public static final String COLUMN_ARTIST_ID = "track_artist_id";
 
         // Id of the search query
-        public static final String COLUMN_SEARCH_ID = "search_id";
+        public static final String COLUMN_SEARCH_ID = "track_search_id";
 
         // Track thumbnail url.
         public static final String COLUMN_THUMBNAIL_URL = "track_thumbnail_url";
@@ -151,9 +182,22 @@ public class SpotifyContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildTrackWithTrack(String t) {
-            return CONTENT_URI.buildUpon().appendPath(t).build();
+        public static Uri buildTracksWithQuery(String q) {
+            return CONTENT_URI_WITH_QUERY.buildUpon().appendPath(q).build();
         }
+
+        public static Uri buildTracksWithArtist(String a) {
+            return CONTENT_URI_WITH_ARTIST.buildUpon().appendPath(a).build();
+        }
+
+        public static String getArtistFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
+
+        public static String getQueryFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
+
 //        /*
 //            Student: This is the buildWeatherLocation function you filled in.
 //         */

@@ -18,31 +18,62 @@ public class SpotifyProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private SpotifyDbHelper mOpenHelper;
 
-    static final int QUERY = 100;
-    static final int ARTIST = 101;
-    static final int TRACKS = 102;
+    static final int QUERIES = 100;
+    static final int QUERIES_WITH_QUERY = 101;
+    static final int ARTISTS = 200;
+    static final int ARTISTS_WITH_ARTIST = 201;
+    static final int ARTISTS_WITH_QUERY = 202;
+    static final int TRACKS = 300;
+    static final int TRACKS_WITH_ARTIST = 301;
+    static final int TRACKS_WITH_QUERY = 302;
 
-//    private static final SQLiteQueryBuilder sWeatherByLocationSettingQueryBuilder;
-//
-//    static{
-//        sWeatherByLocationSettingQueryBuilder = new SQLiteQueryBuilder();
-//
-//        //This is an inner join which looks like
-//        //weather INNER JOIN location ON weather.location_id = location._id
-//        sWeatherByLocationSettingQueryBuilder.setTables(
-//                WeatherContract.WeatherEntry.TABLE_NAME + " INNER JOIN " +
-//                        WeatherContract.LocationEntry.TABLE_NAME +
-//                        " ON " + WeatherContract.WeatherEntry.TABLE_NAME +
-//                        "." + WeatherContract.WeatherEntry.COLUMN_LOC_KEY +
-//                        " = " + WeatherContract.LocationEntry.TABLE_NAME +
-//                        "." + WeatherContract.LocationEntry._ID);
-//    }
-//
-//    //location.location_setting = ?
-//    private static final String sLocationSettingSelection =
-//            WeatherContract.LocationEntry.TABLE_NAME+
-//                    "." + WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? ";
-//
+    private static final SQLiteQueryBuilder sArtistsSettingQueryBuilder;
+
+    static{
+        sArtistsSettingQueryBuilder = new SQLiteQueryBuilder();
+
+        //This is an inner join which looks like
+        //artists INNER JOIN queries ON artists.search_id = queries._id
+        sArtistsSettingQueryBuilder.setTables(
+                SpotifyContract.ArtistEntry.TABLE_NAME + " INNER JOIN " +
+                        SpotifyContract.SearchQueryEntry.TABLE_NAME +
+                        " ON " + SpotifyContract.ArtistEntry.TABLE_NAME +
+                        "." + SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID +
+                        " = " + SpotifyContract.SearchQueryEntry.TABLE_NAME +
+                        "." + SpotifyContract.SearchQueryEntry._ID);
+    }
+
+    private static final SQLiteQueryBuilder sTracksSettingQueryBuilder;
+
+    static{
+        sTracksSettingQueryBuilder = new SQLiteQueryBuilder();
+
+        //This is an inner join which looks like
+        //tracks INNER JOIN queries ON weather.search_id = queries._id INNER JOIN artists ON artists.
+        sTracksSettingQueryBuilder.setTables(
+                SpotifyContract.TrackEntry.TABLE_NAME +
+                        " INNER JOIN " + SpotifyContract.SearchQueryEntry.TABLE_NAME +
+                        " ON " + SpotifyContract.TrackEntry.TABLE_NAME +
+                        "." + SpotifyContract.TrackEntry.COLUMN_SEARCH_ID +
+                        " = " + SpotifyContract.SearchQueryEntry.TABLE_NAME +
+                        "." + SpotifyContract.SearchQueryEntry._ID +
+                        " INNER JOIN " + SpotifyContract.ArtistEntry.TABLE_NAME +
+                        " ON " + SpotifyContract.TrackEntry.TABLE_NAME +
+                        "." + SpotifyContract.TrackEntry.COLUMN_ARTIST_ID +
+                        " = " + SpotifyContract.ArtistEntry.TABLE_NAME +
+                        "." + SpotifyContract.ArtistEntry._ID);
+    }
+
+    //queries.query_string = ?
+    private static final String sQueryStringSelection =
+            SpotifyContract.SearchQueryEntry.TABLE_NAME+
+                    "." + SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING + " = ? ";
+
+    //artists.artist_name = ?
+    private static final String sArtistStringSelection =
+            SpotifyContract.ArtistEntry.TABLE_NAME+
+                    "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME+ " = ? ";
+
 //    //location.location_setting = ? AND date >= ?
 //    private static final String sLocationSettingWithStartDateSelection =
 //            WeatherContract.LocationEntry.TABLE_NAME+
@@ -106,9 +137,16 @@ public class SpotifyProvider extends ContentProvider {
         final String authority = SpotifyContract.CONTENT_AUTHORITY;
 
         // For each type of URI you want to add, create a corresponding code.
-        matcher.addURI(authority, SpotifyContract.PATH_QUERIES + "/*", QUERY);
-        matcher.addURI(authority, SpotifyContract.PATH_ARTISTS + "/*", ARTIST);
-        matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/*", TRACKS);
+        matcher.addURI(authority, SpotifyContract.PATH_QUERIES, QUERIES);
+        matcher.addURI(authority, SpotifyContract.PATH_QUERIES + "/*", QUERIES_WITH_QUERY);
+
+        matcher.addURI(authority, SpotifyContract.PATH_ARTISTS, ARTISTS);
+        matcher.addURI(authority, SpotifyContract.PATH_ARTISTS + "/" + SpotifyContract.PATH_ARTIST + "/*", ARTISTS_WITH_ARTIST);
+        matcher.addURI(authority, SpotifyContract.PATH_ARTISTS + "/" + SpotifyContract.PATH_QUERY + "/*", ARTISTS_WITH_QUERY);
+
+        matcher.addURI(authority, SpotifyContract.PATH_TRACKS, TRACKS);
+        matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/" + SpotifyContract.PATH_ARTIST + "/*", TRACKS_WITH_ARTIST);
+        matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/" + SpotifyContract.PATH_QUERY + "/*", TRACKS_WITH_QUERY);
 
         return matcher;
     }
@@ -135,12 +173,21 @@ public class SpotifyProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
-            // Student: Uncomment and fill out these two cases
-            case QUERY:
+            case QUERIES:
+                return SpotifyContract.SearchQueryEntry.CONTENT_TYPE;
+            case QUERIES_WITH_QUERY:
                 return SpotifyContract.SearchQueryEntry.CONTENT_ITEM_TYPE;
-            case ARTIST:
+            case ARTISTS:
+                return SpotifyContract.ArtistEntry.CONTENT_TYPE;
+            case ARTISTS_WITH_ARTIST:
+                return SpotifyContract.ArtistEntry.CONTENT_TYPE;
+            case ARTISTS_WITH_QUERY:
                 return SpotifyContract.ArtistEntry.CONTENT_TYPE;
             case TRACKS:
+                return SpotifyContract.TrackEntry.CONTENT_TYPE;
+            case TRACKS_WITH_ARTIST:
+                return SpotifyContract.TrackEntry.CONTENT_TYPE;
+            case TRACKS_WITH_QUERY:
                 return SpotifyContract.TrackEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -154,32 +201,98 @@ public class SpotifyProvider extends ContentProvider {
         // and query the database accordingly.
         Cursor retCursor = null;
         switch (sUriMatcher.match(uri)) {
-            case QUERY:
+            case QUERIES:
             {
-//                retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        SpotifyContract.SearchQueryEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
                 break;
             }
-            case ARTIST: {
-//                retCursor = getWeatherByLocationSetting(uri, projection, sortOrder);
+            case QUERIES_WITH_QUERY:
+            {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        SpotifyContract.SearchQueryEntry.TABLE_NAME,
+                        projection,
+                        sQueryStringSelection,
+                        new String[]{SpotifyContract.SearchQueryEntry.getQueryFromUri(uri)},
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case ARTISTS: {
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        SpotifyContract.ArtistEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
+            case ARTISTS_WITH_QUERY:
+            {
+                String q = SpotifyContract.ArtistEntry.getQueryFromUri(uri);
+                retCursor = sArtistsSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        sQueryStringSelection,
+                        new String[]{q},
+                        null,
+                        null,
+                        sortOrder);
                 break;
             }
             case TRACKS: {
-//                retCursor = mOpenHelper.getReadableDatabase().query(
-//                        WeatherContract.WeatherEntry.TABLE_NAME,
-//                        projection,
-//                        selection,
-//                        selectionArgs,
-//                        null,
-//                        null,
-//                        sortOrder
-//                );
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        SpotifyContract.TrackEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
                 break;
             }
-
+            case TRACKS_WITH_QUERY:
+            {
+                String q = SpotifyContract.ArtistEntry.getQueryFromUri(uri);
+                retCursor = sTracksSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        sQueryStringSelection,
+                        new String[]{q},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+            case TRACKS_WITH_ARTIST:
+            {
+                String a = SpotifyContract.ArtistEntry.getArtistFromUri(uri);
+                retCursor = sTracksSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        sArtistStringSelection,
+                        new String[]{a},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
-//        retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+        if (retCursor != null) {
+            retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+        }
         return retCursor;
     }
 
@@ -193,21 +306,28 @@ public class SpotifyProvider extends ContentProvider {
         Uri returnUri = null;
 
         switch (match) {
-            case ARTIST: {
-//                normalizeDate(values);
-//                long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, values);
-//                if ( _id > 0 )
-//                    returnUri = WeatherContract.WeatherEntry.buildWeatherUri(_id);
-//                else
-//                    throw new android.database.SQLException("Failed to insert row into " + uri);
+            case QUERIES: {
+                long _id = db.insert(SpotifyContract.SearchQueryEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = SpotifyContract.SearchQueryEntry.buildQueriesUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case QUERY: {
-//                long _id = db.insert(WeatherContract.LocationEntry.TABLE_NAME, null, values);
-//                if ( _id > 0 )
-//                    returnUri = WeatherContract.LocationEntry.buildLocationUri(_id);
-//                else
-//                    throw new android.database.SQLException("Failed to insert row into " + uri);
+            case ARTISTS: {
+                long _id = db.insert(SpotifyContract.ArtistEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = SpotifyContract.ArtistEntry.buildArtistUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case TRACKS: {
+                long _id = db.insert(SpotifyContract.TrackEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = SpotifyContract.TrackEntry.buildTrackUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
             default:
@@ -225,17 +345,17 @@ public class SpotifyProvider extends ContentProvider {
         // this makes delete all rows return the number of rows deleted
         if ( null == selection ) selection = "1";
         switch (match) {
-            case QUERY:
-//                rowsDeleted = db.delete(
-//                        WeatherContract.WeatherEntry.TABLE_NAME, selection, selectionArgs);
+            case QUERIES:
+                rowsDeleted = db.delete(
+                        SpotifyContract.SearchQueryEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-            case ARTIST:
-//                rowsDeleted = db.delete(
-//                        WeatherContract.LocationEntry.TABLE_NAME, selection, selectionArgs);
+            case ARTISTS:
+                rowsDeleted = db.delete(
+                        SpotifyContract.ArtistEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             case TRACKS:
-//                rowsDeleted = db.delete(
-//                        WeatherContract.LocationEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete(
+                        SpotifyContract.TrackEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -263,18 +383,17 @@ public class SpotifyProvider extends ContentProvider {
         int rowsUpdated = 0;
 
         switch (match) {
-            case QUERY:
-//                normalizeDate(values);
-//                rowsUpdated = db.update(WeatherContract.WeatherEntry.TABLE_NAME, values, selection,
-//                        selectionArgs);
+            case QUERIES:
+                rowsUpdated = db.update(SpotifyContract.SearchQueryEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
                 break;
-            case ARTIST:
-//                rowsUpdated = db.update(WeatherContract.LocationEntry.TABLE_NAME, values, selection,
-//                        selectionArgs);
+            case ARTISTS:
+                rowsUpdated = db.update(SpotifyContract.ArtistEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
                 break;
             case TRACKS:
-//                rowsUpdated = db.update(WeatherContract.LocationEntry.TABLE_NAME, values, selection,
-//                        selectionArgs);
+                rowsUpdated = db.update(SpotifyContract.TrackEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -289,17 +408,46 @@ public class SpotifyProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
+        int returnCount = 0;
         switch (match) {
-            case QUERY:
+            case QUERIES:
                 db.beginTransaction();
-                int returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-//                        normalizeDate(value);
-//                        long _id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, value);
-//                        if (_id != -1) {
-//                            returnCount++;
-//                        }
+                        long _id = db.insert(SpotifyContract.SearchQueryEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            case ARTISTS:
+                db.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(SpotifyContract.ArtistEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            case TRACKS:
+                db.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(SpotifyContract.TrackEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
                     }
                     db.setTransactionSuccessful();
                 } finally {
