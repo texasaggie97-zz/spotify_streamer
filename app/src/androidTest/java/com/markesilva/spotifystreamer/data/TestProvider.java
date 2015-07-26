@@ -534,6 +534,7 @@ public class TestProvider extends AndroidTestCase {
             tracksValues.put(TrackEntry.COLUMN_ARTIST_ID, artistRowId);
             tracksValues.put(TrackEntry.COLUMN_THUMBNAIL_URL, "http://google.com/T" + (char)('A' + i));
             tracksValues.put(TrackEntry.COLUMN_IMAGE_URL, "http://google.com/I" + (char)('A' + i));
+            tracksValues.put(TrackEntry.COLUMN_PREVIEW_URL, "http://altavista.com/P" + (char)('A' + i));
             tracksValues.put(TrackEntry.COLUMN_ALBUM_NAME, "A" + (char)('a' + i));
             tracksValues.put(TrackEntry.COLUMN_TRACK_NAME, "T" + (char)('a' + i));
             returnContentValues[i] = tracksValues;

@@ -179,6 +179,8 @@ public class SpotifyContract {
         public static final String COLUMN_ALBUM_NAME = "album_name";
         // Track name
         public static final String COLUMN_TRACK_NAME = "track_name";
+        // Preview url
+        public static final String COLUMN_PREVIEW_URL = "preview_url";
 
         public static Uri buildTrackUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

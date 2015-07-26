@@ -70,6 +70,7 @@ public class TestUtilities extends AndroidTestCase {
         testValues.put(SpotifyContract.TrackEntry.COLUMN_IMAGE_URL, "http://bing.com");
         testValues.put(SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME, "Radioactive");
         testValues.put(SpotifyContract.TrackEntry.COLUMN_TRACK_NAME, "You Spin Me");
+        testValues.put(SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL, "http://altavist.com");
 
         return testValues;
     }

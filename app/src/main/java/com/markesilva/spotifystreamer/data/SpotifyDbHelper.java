@@ -58,6 +58,7 @@ public class SpotifyDbHelper extends SQLiteOpenHelper {
                 TrackEntry.COLUMN_TRACK_NAME + " TEXT NOT NULL, " +
                 TrackEntry.COLUMN_THUMBNAIL_URL + " TEXT NOT NULL, " +
                 TrackEntry.COLUMN_IMAGE_URL + " TEXT NOT NULL, " +
+                TrackEntry.COLUMN_PREVIEW_URL + " TEXT NOT NULL, " +
 
                 // Set up the artist id column as a foreign key to artist table.
                 " FOREIGN KEY (" + TrackEntry.COLUMN_ARTIST_ID + ") REFERENCES " +
