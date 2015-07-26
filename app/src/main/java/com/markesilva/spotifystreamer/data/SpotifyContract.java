@@ -157,6 +157,9 @@ public class SpotifyContract {
         public static final Uri CONTENT_URI_WITH_ARTIST =
                 CONTENT_URI.buildUpon().appendPath(PATH_ARTIST).build();
 
+        public static final Uri CONTENT_URI_WITH_ARTIST_ID =
+                CONTENT_URI.buildUpon().appendPath(PATH_ARTIST_ID).build();
+
         public static final String CONTENT_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_TRACKS;
         public static final String CONTENT_ITEM_TYPE =
@@ -194,7 +197,15 @@ public class SpotifyContract {
             return CONTENT_URI_WITH_ARTIST.buildUpon().appendPath(a).build();
         }
 
+        public static Uri buildTracksWithArtistId(String i) {
+            return CONTENT_URI_WITH_ARTIST_ID.buildUpon().appendPath(i).build();
+        }
+
         public static String getArtistFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
+
+        public static String getArtistIdFromUri(Uri uri) {
             return uri.getPathSegments().get(2);
         }
 

@@ -473,6 +473,18 @@ public class TestProvider extends AndroidTestCase {
         TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Query, Artist and Track Data.",
                 joinCursor, artistValues);
         joinCursor.close();
+
+        // Get the joined Query, Artist and Track data
+        joinCursor = mContext.getContentResolver().query(
+                TrackEntry.buildTracksWithArtistId(TestUtilities.TEST_ARTIST_SPOTIFY_ID),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+        TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Query, Artist and Track Data.",
+                joinCursor, artistValues);
+        joinCursor.close();
     }
 
     // Make sure we can still delete after adding/updating stuff

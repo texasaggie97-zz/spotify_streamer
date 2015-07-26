@@ -24,6 +24,7 @@ public class TestUriMatcher extends AndroidTestCase {
     private static final Uri TEST_TRACKS_DIR = SpotifyContract.TrackEntry.CONTENT_URI;
     private static final Uri TEST_TRACKS_WITH_QUERY = SpotifyContract.TrackEntry.buildTracksWithQuery(TestUtilities.TEST_QUERY_STRING);
     private static final Uri TEST_TRACKS_WITH_ARTIST = SpotifyContract.TrackEntry.buildTracksWithArtist(TestUtilities.TEST_ARTIST_NAME);
+    private static final Uri TEST_TRACKS_WITH_ARTIST_ID = SpotifyContract.TrackEntry.buildTracksWithArtistId(TestUtilities.TEST_ARTIST_SPOTIFY_ID);
 
     public void testUriMatcher() {
         UriMatcher testMatcher = SpotifyProvider.buildUriMatcher();
@@ -48,6 +49,8 @@ public class TestUriMatcher extends AndroidTestCase {
                 testMatcher.match(TEST_TRACKS_WITH_ARTIST), SpotifyProvider.TRACKS_WITH_ARTIST);
         assertEquals("Error: The TRACK URI was matched incorrectly.",
                 testMatcher.match(TEST_TRACKS_WITH_QUERY), SpotifyProvider.TRACKS_WITH_QUERY);
+        assertEquals("Error: The TRACK URI was matched incorrectly.",
+                testMatcher.match(TEST_TRACKS_WITH_ARTIST_ID), SpotifyProvider.TRACKS_WITH_ARTIST_ID);
     }
 }
 

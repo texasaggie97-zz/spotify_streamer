@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 /**
  * Created by marke on 7/18/2015.
@@ -19,6 +20,7 @@ public class SpotifyProvider extends ContentProvider {
 
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
+    private static final String LOG_TAG = SpotifyProvider.class.getSimpleName();
     private SpotifyDbHelper mOpenHelper;
 
     static final int QUERIES = 100;
@@ -30,6 +32,7 @@ public class SpotifyProvider extends ContentProvider {
     static final int TRACKS = 300;
     static final int TRACKS_WITH_ARTIST = 301;
     static final int TRACKS_WITH_QUERY = 302;
+    static final int TRACKS_WITH_ARTIST_ID = 303;
 
     private static final SQLiteQueryBuilder sArtistsSettingQueryBuilder;
 
@@ -52,9 +55,7 @@ public class SpotifyProvider extends ContentProvider {
     static{
         sTracksSettingQueryBuilder = new SQLiteQueryBuilder();
 
-        //This is an inner join which looks like
-        //tracks INNER JOIN queries ON weather.search_id = queries._id INNER JOIN artists ON artists.
-        sTracksSettingQueryBuilder.setTables(
+        String tables =
                 SpotifyContract.TrackEntry.TABLE_NAME +
                         " INNER JOIN " + SpotifyContract.SearchQueryEntry.TABLE_NAME +
                         " ON " + SpotifyContract.TrackEntry.TABLE_NAME +
@@ -65,7 +66,11 @@ public class SpotifyProvider extends ContentProvider {
                         " ON " + SpotifyContract.TrackEntry.TABLE_NAME +
                         "." + SpotifyContract.TrackEntry.COLUMN_ARTIST_ID +
                         " = " + SpotifyContract.ArtistEntry.TABLE_NAME +
-                        "." + SpotifyContract.ArtistEntry._ID);
+                        "." + SpotifyContract.ArtistEntry._ID;
+
+        //This is an inner join which looks like
+        //tracks INNER JOIN queries ON weather.search_id = queries._id INNER JOIN artists ON artists.
+        sTracksSettingQueryBuilder.setTables(tables);
     }
 
     //queries.query_string = ?
@@ -157,6 +162,7 @@ public class SpotifyProvider extends ContentProvider {
         matcher.addURI(authority, SpotifyContract.PATH_TRACKS, TRACKS);
         matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/" + SpotifyContract.PATH_ARTIST + "/*", TRACKS_WITH_ARTIST);
         matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/" + SpotifyContract.PATH_QUERY + "/*", TRACKS_WITH_QUERY);
+        matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/" + SpotifyContract.PATH_ARTIST_ID + "/*", TRACKS_WITH_ARTIST_ID);
 
         return matcher;
     }
@@ -198,6 +204,8 @@ public class SpotifyProvider extends ContentProvider {
             case TRACKS:
                 return SpotifyContract.TrackEntry.CONTENT_TYPE;
             case TRACKS_WITH_ARTIST:
+                return SpotifyContract.TrackEntry.CONTENT_TYPE;
+            case TRACKS_WITH_ARTIST_ID:
                 return SpotifyContract.TrackEntry.CONTENT_TYPE;
             case TRACKS_WITH_QUERY:
                 return SpotifyContract.TrackEntry.CONTENT_TYPE;
@@ -318,6 +326,19 @@ public class SpotifyProvider extends ContentProvider {
                         projection,
                         sArtistStringSelection,
                         new String[]{a},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+            case TRACKS_WITH_ARTIST_ID:
+            {
+                String i = SpotifyContract.ArtistEntry.getArtistIdFromUri(uri);
+                Log.v(LOG_TAG, "Searching for tracks with artist id " + i);
+                retCursor = sTracksSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        sArtistIdStringSelection,
+                        new String[]{i},
                         null,
                         null,
                         sortOrder);
