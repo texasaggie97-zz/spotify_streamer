@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,7 +34,6 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 import retrofit.RetrofitError;
-import retrofit.http.GET;
 
 
 /**
@@ -69,11 +67,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        Bundle args = getArguments();
-        if (args != null) {
-            mArtistQuery = args.getString(ARTIST_QUERY, null);
-        }
 
         // Tell the main activity who we are so they can tell us when to update the artist list
         ((Callback) getActivity()).setArtistListFragment(this);
@@ -213,9 +206,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                 // Now we need to insert the new search query info
                 ContentValues queryValues = new ContentValues();
                 queryValues.put(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING, mArtistQuery);
-                Time dayTime = new Time();
-                dayTime.setToNow();
-                int julianTime = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
+                long julianTime = System.currentTimeMillis();
                 queryValues.put(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME, julianTime);
                 Uri queryInsertUri = mContext.getContentResolver().insert(
                         SpotifyContract.SearchQueryEntry.CONTENT_URI,
