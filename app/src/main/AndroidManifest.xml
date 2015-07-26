@@ -15,6 +15,7 @@
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".MainActivity" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,6 +27,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
+
             <meta-data
                 android:name="android.app.seachable"
                 android:resource="@xml/searchable" />
@@ -38,9 +40,21 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.markesilva.spotifystreamer.MainActivity" />
         </activity>
+
         <provider
-            android:authorities="com.markesilva.spotifystreamer"
-            android:name=".data.SpotifyProvider" />
+            android:name=".data.SpotifyProvider"
+            android:authorities="com.markesilva.spotifystreamer" />
+
+        <activity
+            android:name=".PreviewPlayerActivity"
+            android:label="@string/title_activity_preview_player"
+            android:parentActivityName=".ArtistTracksActivity"
+            android:theme="@android:style/Theme.Holo.Dialog"
+            >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.markesilva.spotifystreamer.ArtistTracksActivity" />
+        </activity>
     </application>
 
 </manifest>

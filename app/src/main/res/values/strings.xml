@@ -5,4 +5,6 @@
     <string name="title_activity_artist_tracks">Top 10 Tracks</string>
     <string name="search_label">Search</string>
     <string name="search_hint">Artist name</string>
+    <string name="title_activity_preview_player">Preview</string>
+    <string name="hello_world">Hello world!</string>
 </resources>
