@@ -26,6 +26,7 @@ public class SpotifyProvider extends ContentProvider {
     static final int ARTISTS = 200;
     static final int ARTISTS_WITH_ARTIST = 201;
     static final int ARTISTS_WITH_QUERY = 202;
+    static final int ARTISTS_WITH_ARTIST_ID = 203;
     static final int TRACKS = 300;
     static final int TRACKS_WITH_ARTIST = 301;
     static final int TRACKS_WITH_QUERY = 302;
@@ -76,6 +77,11 @@ public class SpotifyProvider extends ContentProvider {
     public static final String sArtistStringSelection =
             SpotifyContract.ArtistEntry.TABLE_NAME+
                     "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME+ " = ? ";
+
+    //artists.spotify_artist_id = ?
+    public static final String sArtistIdStringSelection =
+            SpotifyContract.ArtistEntry.TABLE_NAME+
+                    "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID+ " = ? ";
 
 //    //location.location_setting = ? AND date >= ?
 //    private static final String sLocationSettingWithStartDateSelection =
@@ -146,6 +152,7 @@ public class SpotifyProvider extends ContentProvider {
         matcher.addURI(authority, SpotifyContract.PATH_ARTISTS, ARTISTS);
         matcher.addURI(authority, SpotifyContract.PATH_ARTISTS + "/" + SpotifyContract.PATH_ARTIST + "/*", ARTISTS_WITH_ARTIST);
         matcher.addURI(authority, SpotifyContract.PATH_ARTISTS + "/" + SpotifyContract.PATH_QUERY + "/*", ARTISTS_WITH_QUERY);
+        matcher.addURI(authority, SpotifyContract.PATH_ARTISTS + "/" + SpotifyContract.PATH_ARTIST_ID + "/*", ARTISTS_WITH_ARTIST_ID);
 
         matcher.addURI(authority, SpotifyContract.PATH_TRACKS, TRACKS);
         matcher.addURI(authority, SpotifyContract.PATH_TRACKS + "/" + SpotifyContract.PATH_ARTIST + "/*", TRACKS_WITH_ARTIST);
@@ -183,6 +190,8 @@ public class SpotifyProvider extends ContentProvider {
             case ARTISTS:
                 return SpotifyContract.ArtistEntry.CONTENT_TYPE;
             case ARTISTS_WITH_ARTIST:
+                return SpotifyContract.ArtistEntry.CONTENT_TYPE;
+            case ARTISTS_WITH_ARTIST_ID:
                 return SpotifyContract.ArtistEntry.CONTENT_TYPE;
             case ARTISTS_WITH_QUERY:
                 return SpotifyContract.ArtistEntry.CONTENT_TYPE;
@@ -261,6 +270,18 @@ public class SpotifyProvider extends ContentProvider {
                         projection,
                         sArtistStringSelection,
                         new String[]{a},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+            case ARTISTS_WITH_ARTIST_ID:
+            {
+                String i = SpotifyContract.ArtistEntry.getArtistIdFromUri(uri);
+                retCursor = sArtistsSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        sArtistIdStringSelection,
+                        new String[]{i},
                         null,
                         null,
                         sortOrder);

@@ -46,18 +46,9 @@ public class SpotifyContract {
     public static final String PATH_QUERY = "query";
     public static final String PATH_ARTISTS = "artists";
     public static final String PATH_ARTIST = "artist";
+    public static final String PATH_ARTIST_ID = "artist_id";
     public static final String PATH_TRACKS = "tracks";
     public static final String PATH_TRACK = "track";
-
-    // To make it easy to query for the exact date, we normalize all dates that go into
-    // the database to the start of the the Julian day at UTC.
-    public static long normalizeDate(long startDate) {
-        // normalize the start date to the beginning of the (UTC) day
-        Time time = new Time();
-        time.set(startDate);
-        int julianDay = Time.getJulianDay(startDate, time.gmtoff);
-        return time.setJulianDay(julianDay);
-    }
 
     /* Inner class that defines the table contents of the search query table */
     public static final class SearchQueryEntry implements BaseColumns {
@@ -103,6 +94,9 @@ public class SpotifyContract {
         public static final Uri CONTENT_URI_WITH_ARTIST =
                 CONTENT_URI.buildUpon().appendPath(PATH_ARTIST).build();
 
+        public static final Uri CONTENT_URI_WITH_ARTIST_ID =
+                CONTENT_URI.buildUpon().appendPath(PATH_ARTIST_ID).build();
+
         public static final String CONTENT_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ARTISTS;
         public static final String CONTENT_ITEM_TYPE =
@@ -134,7 +128,15 @@ public class SpotifyContract {
             return CONTENT_URI_WITH_ARTIST.buildUpon().appendPath(a).build();
         }
 
+        public static Uri buildArtistsWithArtistId(String i) {
+            return CONTENT_URI_WITH_ARTIST_ID.buildUpon().appendPath(i).build();
+        }
+
         public static String getArtistFromUri(Uri uri) {
+            return uri.getPathSegments().get(2);
+        }
+
+        public static String getArtistIdFromUri(Uri uri) {
             return uri.getPathSegments().get(2);
         }
 

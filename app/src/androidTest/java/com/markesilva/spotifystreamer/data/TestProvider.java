@@ -18,6 +18,8 @@ import com.markesilva.spotifystreamer.data.SpotifyContract.TrackEntry;
 
 /**
  * Created by marke on 7/18/2015.
+ *
+ * Unit tests for ContentResolver
  */
 public class TestProvider extends AndroidTestCase {
 
@@ -144,6 +146,11 @@ public class TestProvider extends AndroidTestCase {
 
         type = mContext.getContentResolver().getType(
                 ArtistEntry.buildArtistsWithArtist(testArtist));
+        assertEquals("Error: the ArtistEntry CONTENT_URI with location should return ArtistEntry.CONTENT_TYPE",
+                ArtistEntry.CONTENT_TYPE, type);
+
+        type = mContext.getContentResolver().getType(
+                ArtistEntry.buildArtistsWithArtistId(testArtist));
         assertEquals("Error: the ArtistEntry CONTENT_URI with location should return ArtistEntry.CONTENT_TYPE",
                 ArtistEntry.CONTENT_TYPE, type);
 
@@ -368,7 +375,7 @@ public class TestProvider extends AndroidTestCase {
         // sure that the join worked and we actually get all the values back
         artistValues.putAll(queryValues);
 
-        // Get the joined Query, Artist and Track data
+        // Get the joined Query, Artist data
         Cursor joinCursor = mContext.getContentResolver().query(
                 ArtistEntry.buildArtistsWithQuery(TestUtilities.TEST_QUERY_STRING),
                 null, // leaving "columns" null just returns all the columns.
@@ -376,7 +383,31 @@ public class TestProvider extends AndroidTestCase {
                 null, // values for "where" clause
                 null  // sort order
         );
-        TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Query and Artist Data.",
+        TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Query and Artist Data using query.",
+                joinCursor, artistValues);
+        joinCursor.close();
+
+        // Get the joined Query, Artist data
+        joinCursor = mContext.getContentResolver().query(
+                ArtistEntry.buildArtistsWithArtist(TestUtilities.TEST_ARTIST_NAME),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+        TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Query and Artist Data using artist.",
+                joinCursor, artistValues);
+        joinCursor.close();
+
+        // Get the joined Query, Artist data
+        joinCursor = mContext.getContentResolver().query(
+                ArtistEntry.buildArtistsWithArtistId(TestUtilities.TEST_ARTIST_SPOTIFY_ID),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null  // sort order
+        );
+        TestUtilities.validateCursor("testInsertReadProvider.  Error validating joined Query and Artist Data using artist id.",
                 joinCursor, artistValues);
         joinCursor.close();
 

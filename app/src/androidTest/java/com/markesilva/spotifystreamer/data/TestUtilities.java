@@ -15,12 +15,15 @@ import java.util.Set;
 
 /**
  * Created by marke on 7/18/2015.
+ *
+ * Helper functions for unit tests
  */
 public class TestUtilities extends AndroidTestCase {
 
     static final long TEST_DATE = 1419033600L;  // December 20th, 2014
     static final String TEST_QUERY_STRING = "Stirling";
     static final String TEST_ARTIST_NAME = "Lindsey Stirling";
+    static final String TEST_ARTIST_SPOTIFY_ID = "34534534";
 
     static void validateCursor(String error, Cursor valueCursor, ContentValues expectedValues) {
         assertTrue("Empty cursor returned. " + error, valueCursor.moveToFirst());
@@ -53,7 +56,7 @@ public class TestUtilities extends AndroidTestCase {
         ContentValues testValues = new ContentValues();
         testValues.put(SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID, searchQueryRowId);
         testValues.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME, TEST_ARTIST_NAME);
-        testValues.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID, "42");
+        testValues.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID, TEST_ARTIST_SPOTIFY_ID);
         testValues.put(SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL, "http://google.com");
 
         return testValues;
