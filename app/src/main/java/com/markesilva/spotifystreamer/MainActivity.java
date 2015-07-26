@@ -116,12 +116,12 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     }
 
     @Override
-    public void onItemSelected(ArtistListRow a) {
+    public void onItemSelected(String artistName, String artistSpotifyId) {
         if (mTwoPane) {
             // If we are on a large screen, add or replace the track list fragment
             Bundle args = new Bundle();
-            args.putString(ArtistTracksActivityFragment.ARTIST_NAME, a.getName());
-            args.putString(ArtistTracksActivityFragment.ARTIST_ID, a.getId());
+            args.putString(ArtistTracksActivityFragment.ARTIST_NAME, artistName);
+            args.putString(ArtistTracksActivityFragment.ARTIST_ID, artistSpotifyId);
 
             ArtistTracksActivityFragment fragment = new ArtistTracksActivityFragment();
             fragment.setArguments(args);
@@ -131,8 +131,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                     .commit();
         } else {
             Intent intent = new Intent(this, ArtistTracksActivity.class)
-                    .putExtra(ArtistTracksActivityFragment.ARTIST_NAME, a.getName())
-                    .putExtra(ArtistTracksActivityFragment.ARTIST_ID, a.getId());
+                    .putExtra(ArtistTracksActivityFragment.ARTIST_NAME, artistName)
+                    .putExtra(ArtistTracksActivityFragment.ARTIST_ID, artistSpotifyId);
             startActivity(intent);
         }
     }

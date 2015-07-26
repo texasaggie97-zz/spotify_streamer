@@ -28,9 +28,7 @@ public class ArtistListAdapter extends CursorAdapter {
     // private view holder class
     private class ViewHolder {
         ImageView imageView;
-        int imageColId;
         TextView txtName;
-        int artistColId;
     }
 
     @Override
@@ -39,9 +37,7 @@ public class ArtistListAdapter extends CursorAdapter {
         ViewHolder holder;
         holder = new ViewHolder();
         holder.txtName = (TextView) view.findViewById(R.id.artist_listitem_artist);
-        holder.artistColId = c.getColumnIndex(SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME);
         holder.imageView = (ImageView) view.findViewById(R.id.artist_listitem_image);
-        holder.imageColId = c.getColumnIndex(SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL);
         view.setTag(holder);
 
         return view;
@@ -52,11 +48,12 @@ public class ArtistListAdapter extends CursorAdapter {
         ViewHolder holder;
 
         holder = (ViewHolder) view.getTag();
-        if (cursor.getString(holder.imageColId).trim().equals("")) {
+        String thumbnail_url = cursor.getString(MainActivityFragment.COL_ARTIST_THUMBNAIL_URL);
+        if (thumbnail_url.trim().equals("")) {
             Picasso.with(context).load(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
         } else {
-            Picasso.with(context).load(cursor.getString(holder.imageColId)).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
+            Picasso.with(context).load(thumbnail_url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
         }
-        holder.txtName.setText(cursor.getString(holder.artistColId));
+        holder.txtName.setText(cursor.getString(MainActivityFragment.COL_ARTIST_NAME));
     }
 }

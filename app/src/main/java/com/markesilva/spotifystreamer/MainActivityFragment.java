@@ -42,17 +42,39 @@ import retrofit.RetrofitError;
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
-    private static final int ARTIST_LOADER = 0;
     private String mArtistQuery = "zzz";
     private ArtistListAdapter mArtistListAdapter = null;
     private ListView mArtistListView = null;
     private SpotifyApi mSpotifyApi = null;
     private SpotifyService mSpotify = null;
 
+    private static final int ARTIST_LOADER = 0;
+    // Specify columns we need
+    private static final String[] ARTIST_COLUMNS = {
+            SpotifyContract.SearchQueryEntry.TABLE_NAME + "." + SpotifyContract.SearchQueryEntry._ID,
+            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING,
+            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME,
+            SpotifyContract.ArtistEntry.TABLE_NAME + "." + SpotifyContract.ArtistEntry._ID,
+            SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME,
+            SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID,
+            SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID,
+            SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL
+    };
+
+    // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
+    static final int COL_QEURY_ID = 0;
+    static final int COL_QEURY_STRING = 1;
+    static final int COL_QEURY_TIME = 2;
+    static final int COL_ARTIST_ID = 3;
+    static final int COL_ARTIST_NAME = 4;
+    static final int COL_ARTIST_SEARCH_ID = 5;
+    static final int COL_ARTIST_SPOTIFY_ID = 6;
+    static final int COL_ARTIST_THUMBNAIL_URL = 7;
+
     public interface Callback {
         // The activity needs to be the one to dispatch this since it can be to another
         // activity via and intent or updating a different fragment in twopane mode
-        void onItemSelected(ArtistListRow a);
+        void onItemSelected(String artistName, String artistSpotifyId);
 
         // We need to tell the activity who we are
         void setArtistListFragment(MainActivityFragment frag);
@@ -72,7 +94,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         ((Callback) getActivity()).setArtistListFragment(this);
 
         Uri artistUri = SpotifyContract.ArtistEntry.buildArtistsWithArtist(mArtistQuery);
-        Cursor cur = getActivity().getContentResolver().query(artistUri, null, null, null, null);
+        Cursor cur = getActivity().getContentResolver().query(artistUri, ARTIST_COLUMNS, null, null, null);
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), cur, 0);
 
@@ -85,8 +107,12 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             mArtistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    ArtistListRow rowItem = (ArtistListRow) mArtistListAdapter.getItem(position);
-                    ((Callback) getActivity()).onItemSelected(rowItem);
+                    Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                    if (cursor != null) {
+                        ((Callback) getActivity()).onItemSelected(
+                                cursor.getString(COL_ARTIST_NAME),
+                                cursor.getString(COL_ARTIST_SPOTIFY_ID));
+                    }
                 }
             });
 
@@ -118,7 +144,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         Log.v(LOG_TAG, "mArtistQuery was " + mArtistQuery);
         return new CursorLoader(getActivity(),
                 artistListUri,
-                null,
+                ARTIST_COLUMNS,
                 null,
                 null,
                 null);
@@ -202,6 +228,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                             SpotifyContract.ArtistEntry.TABLE_NAME + "." + SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID + " = ? ",
                             new String[]{String.valueOf(queryId)});
                 }
+                cursor.close();
 
                 // Now we need to insert the new search query info
                 ContentValues queryValues = new ContentValues();
