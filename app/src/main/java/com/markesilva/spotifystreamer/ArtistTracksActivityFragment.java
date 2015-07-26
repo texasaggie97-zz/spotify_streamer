@@ -4,7 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -89,7 +90,13 @@ public class ArtistTracksActivityFragment extends Fragment {
             mArtistId = args.getString(ARTIST_ID);
 
             Log.v(LOG_TAG, "Starting from intent: " + mArtistName);
-            ((ActionBarActivity) getActivity()).getSupportActionBar().setSubtitle(mArtistName);
+            AppCompatActivity a = ((AppCompatActivity) getActivity());
+            if (a != null) {
+                ActionBar b = a.getSupportActionBar();
+                if (b != null) {
+                    b.setSubtitle(mArtistName);
+                }
+            }
             updateTrackList(mArtistId);
         }
 
