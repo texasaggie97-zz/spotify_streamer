@@ -2,6 +2,8 @@ package com.markesilva.spotifystreamer.data;
 
 /**
  * Created by marke on 7/18/2015.
+ *
+ * Helper class to encapsulate DB access
  */
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -31,8 +33,9 @@ public class SpotifyDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         final String SQL_CREATE_QUERIES_TABLE = "CREATE TABLE " + SearchQueryEntry.TABLE_NAME + " (" +
                 SearchQueryEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                SearchQueryEntry.COLUMN_QUERY_STRING + " TEXT NOT NULL, " +
-                SearchQueryEntry.COLUMN_QUERY_TIME + " INTEGER NOT NULL " +
+                SearchQueryEntry.COLUMN_QUERY_STRING + " TEXT UNIQUE NOT NULL, " +
+                SearchQueryEntry.COLUMN_QUERY_TIME + " INTEGER NOT NULL, " +
+                " UNIQUE (" + SearchQueryEntry.COLUMN_QUERY_STRING + ") ON CONFLICT REPLACE" +
                 " );";
 
         final String SQL_CREATE_ARTIST_TABLE = "CREATE TABLE " + ArtistEntry.TABLE_NAME + " (" +

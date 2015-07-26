@@ -1,8 +1,17 @@
 package com.markesilva.spotifystreamer;
 
+import android.support.v4.app.LoaderManager;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,56 +20,68 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.markesilva.spotifystreamer.data.SpotifyContract;
+import com.markesilva.spotifystreamer.data.SpotifyProvider;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
 import retrofit.RetrofitError;
+import retrofit.http.GET;
 
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
+    private static final int ARTIST_LOADER = 0;
+    private String mArtistQuery = "zzz";
+    private ArtistListAdapter mArtistListAdapter = null;
+    private ListView mArtistListView = null;
+    private SpotifyApi mSpotifyApi = null;
+    private SpotifyService mSpotify = null;
 
     public interface Callback {
         // The activity needs to be the one to dispatch this since it can be to another
         // activity via and intent or updating a different fragment in twopane mode
-        public void onItemSelected(ArtistListRow a);
+        void onItemSelected(ArtistListRow a);
 
         // We need to tell the activity who we are
-        public void setArtistListFragment(MainActivityFragment frag);
+        void setArtistListFragment(MainActivityFragment frag);
     }
 
     public MainActivityFragment() {
     }
 
-    ArtistListAdapter mArtistListAdapter = null;
-    List<ArtistListRow> mArtistList = null;
-    ListView mArtistListView = null;
-    SpotifyApi mSpotifyApi = null;
-    SpotifyService mSpotify = null;
+    public static String ARTIST_QUERY = "artist_query";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        if (mArtistList == null) {
-            mArtistList = new ArrayList<>();
+        Bundle args = getArguments();
+        if (args != null) {
+            mArtistQuery = args.getString(ARTIST_QUERY, null);
         }
 
         // Tell the main activity who we are so they can tell us when to update the artist list
         ((Callback) getActivity()).setArtistListFragment(this);
 
-        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtistList);
+        Uri artistUri = SpotifyContract.ArtistEntry.buildArtistsWithArtist(mArtistQuery);
+        Cursor cur = getActivity().getContentResolver().query(artistUri, null, null, null, null);
+
+        mArtistListAdapter = new ArtistListAdapter(getActivity(), cur, 0);
 
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
@@ -94,17 +115,50 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(ARTIST_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Uri artistListUri = SpotifyContract.ArtistEntry.buildArtistsWithQuery(mArtistQuery);
+        Log.v(LOG_TAG, "mArtistQuery was " + mArtistQuery);
+        return new CursorLoader(getActivity(),
+                artistListUri,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        mArtistListAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        mArtistListAdapter.swapCursor(null);
+    }
+
     public void updateArtistList(String artist) {
-        GetArtistInfoTask artistTask = new GetArtistInfoTask();
+        GetArtistInfoTask artistTask = new GetArtistInfoTask(getActivity(), artist);
+        mArtistQuery = artist;
         artistTask.execute(artist);
+        getLoaderManager().restartLoader(ARTIST_LOADER, null, this);
     }
 
     // We need to do the actual web query on a thread other than the UI thread. We use AsyncTask for this
     private class GetArtistInfoTask extends AsyncTask<String, Void, List<Artist>> {
         private final String LOG_TAG = GetArtistInfoTask.class.getSimpleName();
+        private final int MAX_ARTISTS = 500;
+        private String mArtistQuery;
+        private Context mContext;
+
+        public GetArtistInfoTask(Context context, String artistQuery) {
+            mContext = context;
+            mArtistQuery = artistQuery;
+        }
 
         protected List<Artist> doInBackground(String... artist) {
             if (artist.length == 0) {
@@ -138,22 +192,76 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(List<Artist> artists) {
             super.onPostExecute(artists);
 
-            if (artists != null) {
-                mArtistList.clear();
+            if ((artists != null) && (artists.size() < MAX_ARTISTS)) {
+                // We found some artists. First we need to delete any records for this search
+                Cursor cursor = mContext.getContentResolver().query(
+                        SpotifyContract.SearchQueryEntry.CONTENT_URI,
+                        null,
+                        SpotifyProvider.sQueryStringSelection,
+                        new String[]{mArtistQuery},
+                        null);
+                if (cursor.getCount() > 0) {
+                    cursor.moveToFirst();
+                    int idx = cursor.getColumnIndex(SpotifyContract.SearchQueryEntry._ID);
+                    long queryId = cursor.getInt(idx);
+                    mContext.getContentResolver().delete(
+                            SpotifyContract.ArtistEntry.CONTENT_URI,
+                            SpotifyContract.ArtistEntry.TABLE_NAME + "." + SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID + " = ? ",
+                            new String[]{String.valueOf(queryId)});
+                }
+
+                // Now we need to insert the new search query info
+                ContentValues queryValues = new ContentValues();
+                queryValues.put(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING, mArtistQuery);
+                Time dayTime = new Time();
+                dayTime.setToNow();
+                int julianTime = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
+                queryValues.put(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME, julianTime);
+                Uri queryInsertUri = mContext.getContentResolver().insert(
+                        SpotifyContract.SearchQueryEntry.CONTENT_URI,
+                        queryValues);
+                long queryRowId = ContentUris.parseId(queryInsertUri);
+
+                // Put together the vector of the artists we found
+                Vector<ContentValues> cvVector = new Vector<>();
 
                 for (Artist a : artists) {
-                    ArtistListRow rowItem = new ArtistListRow(a.images, a.name, a.id);
-                    mArtistList.add(rowItem);
+                    ContentValues c = new ContentValues();
+                    c.put(SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID, queryRowId);
+
+                    Image thumbnail = null;
+                    // store the smallest image that is still at 75 pixels high
+                    for (Image i : a.images) {
+                        if ((thumbnail == null) || ((i.height < thumbnail.height) && (i.height > 75))) {
+                            thumbnail = i;
+                        }
+                    }
+                    if (thumbnail != null) {
+                        c.put(SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL, thumbnail.url);
+                    } else {
+                        c.put(SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL, "");
+                    }
+
+                    c.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME, a.name);
+                    c.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID, a.id);
+
+                    cvVector.add(c);
                     Log.v(LOG_TAG, "Artist = " + a.name);
                 }
-                mArtistListAdapter.setList(mArtistList);
-                mArtistListAdapter.notifyDataSetChanged();
+
+                ContentValues[] cvArray = new ContentValues[cvVector.size()];
+                cvVector.toArray(cvArray);
+                int inserted = mContext.getContentResolver().bulkInsert(
+                        SpotifyContract.ArtistEntry.CONTENT_URI,
+                        cvArray);
+
+                Log.d(LOG_TAG, "GetArtistInfoTask Complete. " + inserted + " records inserted");
             }
 
             if ((artists == null) || (artists.size() == 0)) {
                 Toast.makeText(getActivity(), "No matching artists found. Please refine your search", Toast.LENGTH_LONG).show();
             }
-            if ((artists == null) || (artists.size() >= 500)) {
+            if ((artists != null) && (artists.size() >= MAX_ARTISTS)) {
                 Toast.makeText(getActivity(), "Showing first 500 matches. Please refine search term", Toast.LENGTH_LONG).show();
             }
         }

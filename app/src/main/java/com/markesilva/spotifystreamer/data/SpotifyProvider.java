@@ -8,9 +8,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 /**
  * Created by marke on 7/18/2015.
+ *
+ * Content Provider to spotify information that has been queried from the Spotify API
  */
 public class SpotifyProvider extends ContentProvider {
 
@@ -65,12 +68,12 @@ public class SpotifyProvider extends ContentProvider {
     }
 
     //queries.query_string = ?
-    private static final String sQueryStringSelection =
+    public static final String sQueryStringSelection =
             SpotifyContract.SearchQueryEntry.TABLE_NAME+
                     "." + SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING + " = ? ";
 
     //artists.artist_name = ?
-    private static final String sArtistStringSelection =
+    public static final String sArtistStringSelection =
             SpotifyContract.ArtistEntry.TABLE_NAME+
                     "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME+ " = ? ";
 
@@ -199,7 +202,7 @@ public class SpotifyProvider extends ContentProvider {
                         String sortOrder) {
         // Here's the switch statement that, given a URI, will determine what kind of request it is,
         // and query the database accordingly.
-        Cursor retCursor = null;
+        Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
             case QUERIES:
             {
@@ -246,6 +249,18 @@ public class SpotifyProvider extends ContentProvider {
                         projection,
                         sQueryStringSelection,
                         new String[]{q},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            }
+            case ARTISTS_WITH_ARTIST:
+            {
+                String a = SpotifyContract.ArtistEntry.getArtistFromUri(uri);
+                retCursor = sArtistsSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                        projection,
+                        sArtistStringSelection,
+                        new String[]{a},
                         null,
                         null,
                         sortOrder);
@@ -303,7 +318,7 @@ public class SpotifyProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        Uri returnUri = null;
+        Uri returnUri;
 
         switch (match) {
             case QUERIES: {
@@ -341,7 +356,7 @@ public class SpotifyProvider extends ContentProvider {
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        int rowsDeleted = 0;
+        int rowsDeleted;
         // this makes delete all rows return the number of rows deleted
         if ( null == selection ) selection = "1";
         switch (match) {
@@ -380,7 +395,7 @@ public class SpotifyProvider extends ContentProvider {
             Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
-        int rowsUpdated = 0;
+        int rowsUpdated;
 
         switch (match) {
             case QUERIES:
@@ -405,7 +420,7 @@ public class SpotifyProvider extends ContentProvider {
     }
 
     @Override
-    public int bulkInsert(Uri uri, ContentValues[] values) {
+    public int bulkInsert(Uri uri, @NonNull ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         int returnCount = 0;

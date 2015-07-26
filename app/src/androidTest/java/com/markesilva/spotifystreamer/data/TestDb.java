@@ -11,6 +11,8 @@ import java.util.HashSet;
 
 /**
  * Created by marke on 7/18/2015.
+ *
+ * Test the DB
  */
 public class TestDb extends AndroidTestCase {
     public static final String LOG_TAG = TestDb.class.getSimpleName();
@@ -41,7 +43,7 @@ public class TestDb extends AndroidTestCase {
         // build a HashSet of all of the table names we wish to look for
         // Note that there will be another table in the DB that stores the
         // Android metadata (db version information)
-        final HashSet<String> tableNameHashSet = new HashSet<String>();
+        final HashSet<String> tableNameHashSet = new HashSet<>();
         tableNameHashSet.add(SpotifyContract.SearchQueryEntry.TABLE_NAME);
         tableNameHashSet.add(SpotifyContract.ArtistEntry.TABLE_NAME);
         tableNameHashSet.add(SpotifyContract.TrackEntry.TABLE_NAME);
@@ -75,7 +77,7 @@ public class TestDb extends AndroidTestCase {
                 c.moveToFirst());
 
         // Build a HashSet of all of the column names we want to look for
-        final HashSet<String> queriesColumnHashSet = new HashSet<String>();
+        final HashSet<String> queriesColumnHashSet = new HashSet<>();
         queriesColumnHashSet.add(SpotifyContract.SearchQueryEntry._ID);
         queriesColumnHashSet.add(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING);
         queriesColumnHashSet.add(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME);
@@ -99,7 +101,7 @@ public class TestDb extends AndroidTestCase {
                 c.moveToFirst());
 
         // Build a HashSet of all of the column names we want to look for
-        final HashSet<String> artistsColumnHashSet = new HashSet<String>();
+        final HashSet<String> artistsColumnHashSet = new HashSet<>();
         artistsColumnHashSet.add(SpotifyContract.ArtistEntry._ID);
         artistsColumnHashSet.add(SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID);
         artistsColumnHashSet.add(SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME);
@@ -125,7 +127,7 @@ public class TestDb extends AndroidTestCase {
                 c.moveToFirst());
 
         // Build a HashSet of all of the column names we want to look for
-        final HashSet<String> tracksColumnHashSet = new HashSet<String>();
+        final HashSet<String> tracksColumnHashSet = new HashSet<>();
         tracksColumnHashSet.add(SpotifyContract.TrackEntry._ID);
         tracksColumnHashSet.add(SpotifyContract.TrackEntry.COLUMN_ARTIST_ID);
         tracksColumnHashSet.add(SpotifyContract.TrackEntry.COLUMN_SEARCH_ID);
@@ -151,6 +153,61 @@ public class TestDb extends AndroidTestCase {
         insertQuery();
     }
 
+    public void testDuplicateQuery() {
+        // We insert a query once
+        long queryRowId = insertQuery();
+
+        SpotifyDbHelper dbHelper = new SpotifyDbHelper(mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // We inserted it once, now we make a minor change and insert it again. It should replace
+        // the original
+        ContentValues testValues = new ContentValues();
+        testValues.put(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING, TestUtilities.TEST_QUERY_STRING);
+        testValues.put(SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME, TestUtilities.TEST_DATE + 1);
+
+        // Third Step: Insert ContentValues into database and get a row ID back
+        long queryRowId2 = db.insert(SpotifyContract.SearchQueryEntry.TABLE_NAME, null, testValues);
+
+        // Verify we got a row back.
+        assertTrue(queryRowId2 != -1);
+
+        // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
+        // the round trip.
+
+        // Fourth Step: Query the database and receive a Cursor back
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = db.query(
+                SpotifyContract.SearchQueryEntry.TABLE_NAME,  // Table to Query
+                null, // all columns
+                null, // Columns for the "where" clause
+                null, // Values for the "where" clause
+                null, // columns to group by
+                null, // columns to filter by row groups
+                null // sort order
+        );
+
+        // Move the cursor to a valid database row and check to see if we got any records back
+        // from the query
+        assertTrue("Error: No Records returned from queries query", cursor.moveToFirst());
+
+        // There should only be one re returned
+        assertTrue("Error: multiple rows returned from query", cursor.getCount() == 1);
+
+        // Fifth Step: Validate data in resulting Cursor with the original ContentValues
+        // (you can use the validateCurrentRecord function in TestUtilities to validate the
+        // query if you like)
+        TestUtilities.validateCurrentRecord("Error: Queries Query Validation Failed",
+                cursor, testValues);
+
+        // Move the cursor to demonstrate that there is only one record in the database
+        assertFalse("Error: More than one record returned from queries query",
+                cursor.moveToNext());
+
+        // Sixth Step: Close Cursor and Database
+        cursor.close();
+        db.close();
+    }
     public void testArtistTable() {
         insertArtist(-1);
     }
@@ -214,7 +271,7 @@ public class TestDb extends AndroidTestCase {
     }
 
     public long insertQuery() {
-        long queryRowId = -1;
+        long queryRowId;
         // First step: Get reference to writable database
         // If there's an error in those massive SQL table creation Strings,
         // errors will be thrown here when you try to get a writable database.
@@ -248,7 +305,7 @@ public class TestDb extends AndroidTestCase {
 
         // Move the cursor to a valid database row and check to see if we got any records back
         // from the query
-        assertTrue( "Error: No Records returned from queries query", cursor.moveToFirst() );
+        assertTrue("Error: No Records returned from queries query", cursor.moveToFirst());
 
         // Fifth Step: Validate data in resulting Cursor with the original ContentValues
         // (you can use the validateCurrentRecord function in TestUtilities to validate the
@@ -257,8 +314,8 @@ public class TestDb extends AndroidTestCase {
                 cursor, testValues);
 
         // Move the cursor to demonstrate that there is only one record in the database
-        assertFalse( "Error: More than one record returned from queries query",
-                cursor.moveToNext() );
+        assertFalse("Error: More than one record returned from queries query",
+                cursor.moveToNext());
 
         // Sixth Step: Close Cursor and Database
         cursor.close();

@@ -3,7 +3,9 @@ package com.markesilva.spotifystreamer;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,7 +13,7 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 
-public class MainActivity extends ActionBarActivity implements MainActivityFragment.Callback {
+public class MainActivity extends AppCompatActivity implements MainActivityFragment.Callback {
 
     final private String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String ARTISTTRACKFRAGMENT_TAG = "ATFTAG";
@@ -38,18 +40,18 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
         mSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Toast.makeText(getBaseContext(), query, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), query.trim(), Toast.LENGTH_SHORT).show();
                 if (mFrag != null) {
-                    mFrag.updateArtistList(query);
+                    mFrag.updateArtistList(query.trim());
                 }
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (mFrag != null) {
-                    mFrag.updateArtistList(newText);
-                }
+//                if (mFrag != null) {
+//                    mFrag.updateArtistList(newText);
+//                }
                 return false;
             }
         });
@@ -65,7 +67,10 @@ public class MainActivity extends ActionBarActivity implements MainActivityFragm
             }
         } else {
             mTwoPane = false;
-            getSupportActionBar().setElevation(0f);
+            ActionBar a = getSupportActionBar();
+            if (a != null) {
+                a.setElevation(0f);
+            }
         }
     }
 
