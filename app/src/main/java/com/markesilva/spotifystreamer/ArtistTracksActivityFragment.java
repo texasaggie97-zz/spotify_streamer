@@ -3,6 +3,7 @@ package com.markesilva.spotifystreamer;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -53,6 +55,41 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
     String mArtistName;
     String mArtistId;
 
+    private static final String[] TRACK_COLUMNS = {
+            SpotifyContract.SearchQueryEntry.TABLE_NAME + "." + SpotifyContract.SearchQueryEntry._ID,
+            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING,
+            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME,
+            SpotifyContract.TrackEntry.TABLE_NAME + "." + SpotifyContract.TrackEntry._ID,
+            SpotifyContract.TrackEntry.COLUMN_ARTIST_ID,
+            SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL,
+            SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
+            SpotifyContract.TrackEntry.COLUMN_IMAGE_URL,
+            SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
+            SpotifyContract.ArtistEntry.TABLE_NAME + "." + SpotifyContract.ArtistEntry._ID,
+            SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME,
+            SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID,
+            SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID,
+            SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL
+    };
+
+    // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
+    static final int COL_QEURY_ID = 0;
+    static final int COL_QEURY_STRING = 1;
+    static final int COL_QEURY_TIME = 2;
+    static final int COL_TRACK_ID = 3;
+    static final int COL_TRACK_ARTIST_ID = 4;
+    static final int COL_TRACK_PREVIEW_URL = 5;
+    static final int COL_TRACK_ALBUM_NAME = 6;
+    static final int COL_TRACK_IMAGE_URL = 7;
+    static final int COL_TRACK_NAME = 8;
+    static final int COL_ARTIST_ID = 9;
+    static final int COL_ARTIST_NAME = 10;
+    static final int COL_ARTIST_SEARCH_ID = 11;
+    static final int COL_ARTIST_SPOTIFY_ID = 12;
+    static final int COL_ARTIST_THUMBNAIL_URL = 13;
+
+
+
     public ArtistTracksActivityFragment() {
     }
 
@@ -77,7 +114,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
         }
 
         Uri artistUri = SpotifyContract.TrackEntry.buildTracksWithQuery(mArtistId);
-        Cursor cur = getActivity().getContentResolver().query(artistUri, null, null, null, null);
+        final Cursor cur = getActivity().getContentResolver().query(artistUri, TRACK_COLUMNS, null, null, null);
 
         mTrackListAdapter = new TrackListAdapter(getActivity(), cur, 0);
 
@@ -87,17 +124,23 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             Log.v(LOG_TAG, "mTrackListView is null!?");
         } else {
             mTrackListView.setAdapter(mTrackListAdapter);
-            // Don't need a click listener yet
-            /*mTrackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            mTrackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    ArtistListRow rowItem = (ArtistListRow) mTrackListView.getItem(position);
-                    String artistId = rowItem.getId();
-                    Intent artistTracksIntent = new Intent(getActivity(), ArtistTracksActivity.class);
-                    artistTracksIntent.putExtra("artistId", artistId);
-                    startActivity(artistTracksIntent);
+                    Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                    if (cursor != null) {
+                        Intent playerIntent = new Intent(getActivity(), PreviewPlayerActivity.class);
+                        ContentValues c = new ContentValues();
+                        c.put(SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL, cursor.getString(COL_TRACK_PREVIEW_URL));
+                        c.put(SpotifyContract.TrackEntry.COLUMN_TRACK_NAME, cursor.getString(COL_TRACK_NAME));
+                        c.put(SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME, cursor.getString(COL_TRACK_ALBUM_NAME));
+                        c.put(SpotifyContract.TrackEntry.COLUMN_IMAGE_URL, cursor.getString(COL_TRACK_IMAGE_URL));
+                        c.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME, cursor.getString(COL_ARTIST_NAME));
+                        playerIntent.putExtra(PreviewPlayerActivity.INTENT_KEY, c);
+                        startActivity(playerIntent);
+                    }
                 }
-            });*/
+            });
 
             // Set up Spotify
             mSpotifyApi = new SpotifyApi();
@@ -130,7 +173,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
         Log.v(LOG_TAG, "Query Uri == " + trackListUri);
         return new CursorLoader(getActivity(),
                 trackListUri,
-                null,
+                TRACK_COLUMNS,
                 null,
                 null,
                 null);
@@ -299,11 +342,8 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
         // private view holder class
         private class ViewHolder {
             ImageView imageView;
-            int imageColId;
             TextView txtAlbum;
-            int albumColId;
             TextView txtTrack;
-            int trackColId;
         }
 
         @Override
@@ -311,11 +351,8 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             View view = LayoutInflater.from(context).inflate(R.layout.track_listitem, parent, false);
             ViewHolder holder = new ViewHolder();
             holder.imageView = (ImageView) view.findViewById(R.id.track_listitem_image);
-            holder.imageColId = c.getColumnIndex(SpotifyContract.TrackEntry.COLUMN_THUMBNAIL_URL);
             holder.txtAlbum = (TextView) view.findViewById(R.id.track_listitem_album);
-            holder.albumColId = c.getColumnIndex(SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME);
             holder.txtTrack = (TextView) view.findViewById(R.id.track_listitem_track);
-            holder.trackColId = c.getColumnIndex(SpotifyContract.TrackEntry.COLUMN_TRACK_NAME);
             view.setTag(holder);
 
             return view;
@@ -326,13 +363,13 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             ViewHolder holder = (ViewHolder) view.getTag();
 
             if (holder != null) {
-                if (cursor.getString(holder.imageColId).trim().equals("")) {
+                if (cursor.getString(COL_TRACK_IMAGE_URL).trim().equals("")) {
                     Picasso.with(context).load(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
                 } else {
-                    Picasso.with(context).load(cursor.getString(holder.imageColId)).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
+                    Picasso.with(context).load(cursor.getString(COL_TRACK_IMAGE_URL)).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(holder.imageView);
                 }
-                holder.txtAlbum.setText(cursor.getString(holder.albumColId));
-                holder.txtTrack.setText(cursor.getString(holder.trackColId));
+                holder.txtAlbum.setText(cursor.getString(COL_TRACK_ALBUM_NAME));
+                holder.txtTrack.setText(cursor.getString(COL_TRACK_NAME));
             }
         }
     }

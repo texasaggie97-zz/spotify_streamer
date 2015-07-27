@@ -7,6 +7,7 @@ import android.view.MenuItem;
 
 
 public class PreviewPlayerActivity extends AppCompatActivity {
+    public final static String INTENT_KEY = "content_values";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

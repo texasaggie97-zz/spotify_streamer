@@ -49,7 +49,7 @@
             android:name=".PreviewPlayerActivity"
             android:label="@string/title_activity_preview_player"
             android:parentActivityName=".ArtistTracksActivity"
-            android:theme="@android:style/Theme.Holo.Dialog"
+            android:theme="@style/DialogTheme"
             >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -7,7 +7,6 @@
     tools:context="com.markesilva.spotifystreamer.PreviewPlayerActivityFragment">
 
     <TextView
-        android:text="Artist"
         android:id="@+id/player_artist_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -15,7 +14,6 @@
         />
 
     <TextView
-        android:text="Album"
         android:id="@+id/player_album_name"
         android:layout_below="@+id/player_artist_name"
         android:paddingTop="@dimen/player_vert_padding"
@@ -25,7 +23,6 @@
         />
 
     <ImageView
-        android:src="@drawable/default_image"
         android:layout_below="@+id/player_album_name"
         android:id="@+id/player_track_image"
         android:paddingTop="@dimen/player_vert_padding"
@@ -35,7 +32,6 @@
         />
 
     <TextView
-        android:text="Track"
         android:id="@+id/player_track_name"
         android:layout_below="@+id/player_track_image"
         android:paddingTop="@dimen/player_vert_padding"
