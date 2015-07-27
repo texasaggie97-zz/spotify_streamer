@@ -12,4 +12,5 @@
     <dimen name="player_vert_padding">10dp</dimen>
     <dimen name="player_image_height">200dp</dimen>
     <dimen name="player_image_width">200dp</dimen>
+    <dimen name="player_progress_width">250dp</dimen>
 </resources>

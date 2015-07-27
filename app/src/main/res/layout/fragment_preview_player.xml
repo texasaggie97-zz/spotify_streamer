@@ -29,8 +29,8 @@
         android:layout_below="@+id/player_album_name"
         android:id="@+id/player_track_image"
         android:paddingTop="@dimen/player_vert_padding"
-        android:layout_width="@dimen/player_image_height"
-        android:layout_height="@dimen/player_image_width"
+        android:layout_width="@dimen/player_image_width"
+        android:layout_height="@dimen/player_image_height"
         android:layout_centerHorizontal="true"
         />
 
@@ -50,8 +50,9 @@
         android:paddingTop="@dimen/player_vert_padding"
         style="@android:style/Widget.Holo.ProgressBar.Horizontal"
         android:max="30"
-        android:layout_width="match_parent"
+        android:layout_width="@dimen/player_progress_width"
         android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         />
 
     <ImageButton
