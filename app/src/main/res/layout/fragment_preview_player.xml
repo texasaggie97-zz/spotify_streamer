@@ -6,7 +6,82 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.markesilva.spotifystreamer.PreviewPlayerActivityFragment">
 
-    <TextView android:text="@string/hello_world" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <TextView
+        android:text="Artist"
+        android:id="@+id/player_artist_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        />
+
+    <TextView
+        android:text="Album"
+        android:id="@+id/player_album_name"
+        android:layout_below="@+id/player_artist_name"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        />
+
+    <ImageView
+        android:src="@drawable/default_image"
+        android:layout_below="@+id/player_album_name"
+        android:id="@+id/player_track_image"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:layout_width="@dimen/player_image_height"
+        android:layout_height="@dimen/player_image_width"
+        android:layout_centerHorizontal="true"
+        />
+
+    <TextView
+        android:text="Track"
+        android:id="@+id/player_track_name"
+        android:layout_below="@+id/player_track_image"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        />
+
+    <ProgressBar
+        android:id="@+id/player_progress_bar"
+        android:layout_below="@+id/player_track_name"
+        android:paddingTop="@dimen/player_vert_padding"
+        style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+        android:max="30"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <ImageButton
+        android:id="@+id/player_back_button"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:layout_below="@+id/player_progress_bar"
+        android:src="@android:drawable/ic_media_previous"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/player_progress_bar"
+        />
+
+    <ImageButton
+        android:id="@+id/player_play_pause_button"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:layout_below="@+id/player_progress_bar"
+        android:src="@android:drawable/ic_media_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        />
+
+    <ImageButton
+        android:id="@+id/player_next_button"
+        android:layout_below="@+id/player_progress_bar"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:src="@android:drawable/ic_media_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/player_progress_bar"
+        />
 
 </RelativeLayout>

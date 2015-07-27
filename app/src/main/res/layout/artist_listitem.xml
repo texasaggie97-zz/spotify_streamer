@@ -5,11 +5,11 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:layout_width="@dimen/image_width"
-        android:layout_height="@dimen/image_height"
+        android:layout_width="@dimen/thumbnail_image_width"
+        android:layout_height="@dimen/thumbnail_image_height"
         android:id="@+id/artist_listitem_image"
         android:layout_centerVertical="true"
-        android:layout_margin="@dimen/image_padding"
+        android:layout_margin="@dimen/thumbnail_image_padding"
         />
 
     <TextView

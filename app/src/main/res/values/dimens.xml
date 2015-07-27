@@ -3,8 +3,13 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    // list item sizes
-    <dimen name="image_height">75dp</dimen>
-    <dimen name="image_width">75dp</dimen>
-    <dimen name="image_padding">10dp</dimen>
+    <!-- list item sizes -->
+    <dimen name="thumbnail_image_height">75dp</dimen>
+    <dimen name="thumbnail_image_width">75dp</dimen>
+    <dimen name="thumbnail_image_padding">10dp</dimen>
+
+    <!-- player sizes -->
+    <dimen name="player_vert_padding">10dp</dimen>
+    <dimen name="player_image_height">200dp</dimen>
+    <dimen name="player_image_width">200dp</dimen>
 </resources>
