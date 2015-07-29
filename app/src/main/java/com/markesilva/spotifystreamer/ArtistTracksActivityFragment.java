@@ -88,8 +88,6 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
     static final int COL_ARTIST_SPOTIFY_ID = 12;
     static final int COL_ARTIST_THUMBNAIL_URL = 13;
 
-
-
     public ArtistTracksActivityFragment() {
     }
 
@@ -130,13 +128,9 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                     Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                     if (cursor != null) {
                         Intent playerIntent = new Intent(getActivity(), PreviewPlayerActivity.class);
-                        ContentValues c = new ContentValues();
-                        c.put(SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL, cursor.getString(COL_TRACK_PREVIEW_URL));
-                        c.put(SpotifyContract.TrackEntry.COLUMN_TRACK_NAME, cursor.getString(COL_TRACK_NAME));
-                        c.put(SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME, cursor.getString(COL_TRACK_ALBUM_NAME));
-                        c.put(SpotifyContract.TrackEntry.COLUMN_IMAGE_URL, cursor.getString(COL_TRACK_IMAGE_URL));
-                        c.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME, cursor.getString(COL_ARTIST_NAME));
-                        playerIntent.putExtra(PreviewPlayerActivity.INTENT_KEY, c);
+                        Uri trackListUri = SpotifyContract.TrackEntry.buildTracksWithArtistId(mArtistId);
+                        playerIntent.putExtra(PreviewPlayerActivity.TRACK_URI_KEY, trackListUri);
+                        playerIntent.putExtra(PreviewPlayerActivity.ROW_NUM_KEY, position);
                         startActivity(playerIntent);
                     }
                 }

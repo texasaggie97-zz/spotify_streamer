@@ -4,13 +4,11 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
-import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity implements MainActivityFragment.Callback {
@@ -33,14 +31,12 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         mSearch.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                Toast.makeText(getBaseContext(), String.valueOf(hasFocus), Toast.LENGTH_SHORT).show();
             }
         });
 
         mSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Toast.makeText(getBaseContext(), query.trim(), Toast.LENGTH_SHORT).show();
                 if (mFrag != null) {
                     mFrag.updateArtistList(query.trim());
                 }

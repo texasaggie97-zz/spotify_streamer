@@ -1,5 +1,6 @@
 package com.markesilva.spotifystreamer;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -7,10 +8,16 @@ import android.view.MenuItem;
 
 
 public class PreviewPlayerActivity extends AppCompatActivity {
-    public final static String INTENT_KEY = "content_values";
+    public final static String TRACK_URI_KEY = "track_uri";
+    public final static String ROW_NUM_KEY = "row_number";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            setTheme(R.style.AppTheme);
+        } else {
+            setTheme(R.style.DialogTheme);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preview_player);
     }

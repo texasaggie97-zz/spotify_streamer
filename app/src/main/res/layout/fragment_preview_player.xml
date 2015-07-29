@@ -8,46 +8,35 @@
 
     <TextView
         android:id="@+id/player_artist_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/PlayerTextStyle"
         android:layout_centerHorizontal="true"
         />
 
     <TextView
         android:id="@+id/player_album_name"
         android:layout_below="@+id/player_artist_name"
-        android:paddingTop="@dimen/player_vert_padding"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/PlayerTextStyle"
         android:layout_centerHorizontal="true"
         />
 
     <ImageView
         android:layout_below="@+id/player_album_name"
         android:id="@+id/player_track_image"
-        android:paddingTop="@dimen/player_vert_padding"
-        android:layout_width="@dimen/player_image_width"
-        android:layout_height="@dimen/player_image_height"
+        style="@style/PlayerImageStyle"
         android:layout_centerHorizontal="true"
         />
 
     <TextView
         android:id="@+id/player_track_name"
         android:layout_below="@+id/player_track_image"
-        android:paddingTop="@dimen/player_vert_padding"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/PlayerTextStyle"
         android:layout_centerHorizontal="true"
         />
 
-    <ProgressBar
+    <SeekBar
         android:id="@+id/player_progress_bar"
         android:layout_below="@+id/player_track_name"
-        android:paddingTop="@dimen/player_vert_padding"
-        style="@android:style/Widget.Holo.ProgressBar.Horizontal"
-        android:max="30"
-        android:layout_width="@dimen/player_progress_width"
-        android:layout_height="wrap_content"
+        style="@style/PlayerProgressStyle"
         android:layout_centerHorizontal="true"
         />
 
