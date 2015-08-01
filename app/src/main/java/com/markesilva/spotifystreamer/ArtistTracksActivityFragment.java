@@ -1,13 +1,16 @@
 package com.markesilva.spotifystreamer;
 
+import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -55,6 +58,42 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
     String mArtistName;
     String mArtistId;
 
+    // We need to talk to the music service
+    private MediaPlayerService mMusicService;
+    private Intent mPlayIntent;
+    private boolean mMusicBound = false;
+    private ServiceConnection mMusicConnection = new ServiceConnection(){
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MediaPlayerService.MusicBinder binder = (MediaPlayerService.MusicBinder)service;
+            //get service
+            mMusicService = binder.getService();
+            //pass list
+            mMusicBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mMusicBound = false;
+        }
+    };
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mPlayIntent == null) {
+            mPlayIntent = new Intent(getActivity(), MediaPlayerService.class);
+            getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getActivity().unbindService(mMusicConnection);
+    }
     private static final String[] TRACK_COLUMNS = {
             SpotifyContract.SearchQueryEntry.TABLE_NAME + "." + SpotifyContract.SearchQueryEntry._ID,
             SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING,
@@ -131,6 +170,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                         Uri trackListUri = SpotifyContract.TrackEntry.buildTracksWithArtistId(mArtistId);
                         playerIntent.putExtra(PreviewPlayerActivity.TRACK_URI_KEY, trackListUri);
                         playerIntent.putExtra(PreviewPlayerActivity.ROW_NUM_KEY, position);
+                        mMusicService.reset();
                         startActivity(playerIntent);
                     }
                 }

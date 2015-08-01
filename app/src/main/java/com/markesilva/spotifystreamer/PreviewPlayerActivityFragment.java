@@ -49,10 +49,9 @@ public class PreviewPlayerActivityFragment extends Fragment {
     private Uri mTrackUri;
     private int mPosition;
     // private ServiceConnection mMusicConnection;
-    private boolean mMusicBound = false;
-    private MediaPlayerService mMusicService;
     private Intent mPlayIntent;
-
+    private MediaPlayerService mMusicService;
+    private boolean mMusicBound = false;
     private ServiceConnection mMusicConnection = new ServiceConnection(){
 
         @Override
@@ -61,9 +60,11 @@ public class PreviewPlayerActivityFragment extends Fragment {
             //get service
             mMusicService = binder.getService();
             //pass list
-            mMusicService.setSongs(mTrackUri, mPosition);
-            mMusicService.playSong();
-            mPlay.setImageResource(mPauseDrawable);
+            if (mMusicService.isPlaying() == MediaPlayerService.tPlayerState.idle) {
+                mMusicService.setSongs(mTrackUri, mPosition);
+                mMusicService.playSong();
+                mPlay.setImageResource(mPauseDrawable);
+            }
             mMusicService.setViews(mAlbumText, mTrackText, mArtistText, mImageView);
             mMusicService.setSeekBar(mSeekBar);
             mMusicService.updateViews();
@@ -131,7 +132,7 @@ public class PreviewPlayerActivityFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     mMusicService.pausePlay();
-                    if (mMusicService.isPlaying()) {
+                    if (mMusicService.isPlaying() == MediaPlayerService.tPlayerState.playing) {
                         mPlay.setImageResource(mPauseDrawable);
                     } else {
                         mPlay.setImageResource(mPlayDrawable);

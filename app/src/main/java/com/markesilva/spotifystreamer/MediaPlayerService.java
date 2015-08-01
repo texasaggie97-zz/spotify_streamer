@@ -41,7 +41,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private int mPosition;
     private MediaObserver mMediaObserver;
     private final IBinder mMusicBind = new MusicBinder();
-    private enum tPlayerState {
+    public enum tPlayerState {
         idle,
         preparing,
         playing,
@@ -152,9 +152,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         }
     }
 
-    public boolean isPlaying() {
+    public void reset() {
+        mPlayerState = tPlayerState.idle;
+        mMediaPlayer.reset();
+    }
+
+    public tPlayerState isPlaying() {
         Log.d(LOG_TAG, "isPlaying");
-        return mMediaPlayer.isPlaying();
+        return mPlayerState;
     }
 
     public void setViews(TextView album, TextView track, TextView artist, ImageView image)
