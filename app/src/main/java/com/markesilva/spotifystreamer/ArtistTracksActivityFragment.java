@@ -94,38 +94,20 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
         super.onDestroy();
         getActivity().unbindService(mMusicConnection);
     }
+
     private static final String[] TRACK_COLUMNS = {
-            SpotifyContract.SearchQueryEntry.TABLE_NAME + "." + SpotifyContract.SearchQueryEntry._ID,
-            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING,
-            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME,
             SpotifyContract.TrackEntry.TABLE_NAME + "." + SpotifyContract.TrackEntry._ID,
-            SpotifyContract.TrackEntry.COLUMN_ARTIST_ID,
-            SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL,
             SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
             SpotifyContract.TrackEntry.COLUMN_IMAGE_URL,
             SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
-            SpotifyContract.ArtistEntry.TABLE_NAME + "." + SpotifyContract.ArtistEntry._ID,
-            SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME,
-            SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID,
-            SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID,
-            SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL
     };
 
     // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
-    static final int COL_QEURY_ID = 0;
-    static final int COL_QEURY_STRING = 1;
-    static final int COL_QEURY_TIME = 2;
-    static final int COL_TRACK_ID = 3;
-    static final int COL_TRACK_ARTIST_ID = 4;
-    static final int COL_TRACK_PREVIEW_URL = 5;
-    static final int COL_TRACK_ALBUM_NAME = 6;
-    static final int COL_TRACK_IMAGE_URL = 7;
-    static final int COL_TRACK_NAME = 8;
-    static final int COL_ARTIST_ID = 9;
-    static final int COL_ARTIST_NAME = 10;
-    static final int COL_ARTIST_SEARCH_ID = 11;
-    static final int COL_ARTIST_SPOTIFY_ID = 12;
-    static final int COL_ARTIST_THUMBNAIL_URL = 13;
+    // COL_TRACK_ID isn't used directly but needs to exist in the query
+    static final int COL_TRACK_ID = 0;
+    static final int COL_TRACK_ALBUM_NAME = 1;
+    static final int COL_TRACK_IMAGE_URL = 2;
+    static final int COL_TRACK_NAME = 3;
 
     public ArtistTracksActivityFragment() {
     }
