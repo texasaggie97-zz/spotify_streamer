@@ -4,9 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
@@ -19,14 +16,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.markesilva.spotifystreamer.data.SpotifyContract;
-import com.squareup.picasso.Picasso;
-
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 
 /**
  * A placeholder fragment containing a simple view.
@@ -107,8 +96,10 @@ public class PreviewPlayerActivityFragment extends Fragment {
         mNext = (ImageButton) mRootView.findViewById(R.id.player_next_button);
         mPrev = (ImageButton) mRootView.findViewById(R.id.player_back_button);
         mPlay = (ImageButton) mRootView.findViewById(R.id.player_play_pause_button);
-        mPauseDrawable = getResources().getIdentifier("@android:drawable/ic_media_pause", null, null);
-        mPlayDrawable = getResources().getIdentifier("@android:drawable/ic_media_play", null, null);
+        //mPauseDrawable = getResources().getIdentifier("@drawable/ic_play_arrow_black_48dp", null, null);
+        //mPlayDrawable = getResources().getIdentifier("@drawable/ic_play_arrow_black_48dp", null, null);
+        mPauseDrawable = R.drawable.ic_pause_black_48dp;
+        mPlayDrawable = R.drawable.ic_play_arrow_black_48dp;
 
         if ((mNext == null) || (mPrev == null) || (mPlay == null)) {
             // If any of these are null, then something is wrong

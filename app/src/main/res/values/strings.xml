@@ -7,4 +7,5 @@
     <string name="search_hint">Artist name</string>
     <string name="title_activity_preview_player">Preview</string>
     <string name="hello_world">Hello world!</string>
+    <string name="reload_player">Preview</string>
 </resources>

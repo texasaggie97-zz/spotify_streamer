@@ -10,9 +10,12 @@ import android.os.IBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
+
+import com.markesilva.spotifystreamer.utils.ReloadPlayer;
 
 
 public class MainActivity extends AppCompatActivity implements MainActivityFragment.Callback {
@@ -29,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private ServiceConnection mMusicConnection;
     private MediaPlayerService mMusicService;
     private boolean mMusicBound = false;
+    private ReloadPlayer mReloadPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,9 +119,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mMusicService != null) {
-            mMusicService.setSeekBar(null);
-        }
         unbindService(mMusicConnection);
     }
     @Override
@@ -137,7 +138,10 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuInflater inflater = getMenuInflater();
+        mReloadPlayer = new ReloadPlayer();
+        mReloadPlayer.menuInflator(mMusicService, this, inflater, menu);
+        inflater.inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -151,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.reload_player) {
+            return mReloadPlayer.relauchPlayer(item);
         }
 
         return super.onOptionsItemSelected(item);

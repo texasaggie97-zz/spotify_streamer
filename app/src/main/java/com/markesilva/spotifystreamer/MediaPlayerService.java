@@ -86,6 +86,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             mMediaPlayer.setDataSource(previewUrl);
             mMediaPlayer.prepareAsync();
             mPlayerState = tPlayerState.preparing;
+            updateViews();
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), "Preview could not be loaded", Toast.LENGTH_LONG).show();
             Log.e(LOG_TAG, e.getMessage(), e);
@@ -153,8 +154,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void reset() {
-        mPlayerState = tPlayerState.idle;
-        mMediaPlayer.reset();
+        if (mPlayerState != tPlayerState.idle) {
+            mPlayerState = tPlayerState.idle;
+            mMediaPlayer.reset();
+        }
     }
 
     public tPlayerState isPlaying() {

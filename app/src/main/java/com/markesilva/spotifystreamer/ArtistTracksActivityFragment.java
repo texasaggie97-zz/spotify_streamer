@@ -92,7 +92,9 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getActivity().unbindService(mMusicConnection);
+        if (mMusicBound) {
+            getActivity().unbindService(mMusicConnection);
+        }
     }
 
     private static final String[] TRACK_COLUMNS = {
