@@ -1,8 +1,12 @@
 package com.markesilva.spotifystreamer;
 
 import android.app.SearchManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -19,6 +23,12 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private SearchView mSearch;
 
     private boolean mTwoPane;
+
+    // The main activity will own the music service so that it is available at all times
+    private Intent mPlayIntent;
+    private ServiceConnection mMusicConnection;
+    private MediaPlayerService mMusicService;
+    private boolean mMusicBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,13 +78,48 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                 a.setElevation(0f);
             }
         }
+
+        mMusicConnection = new ServiceConnection(){
+
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                MediaPlayerService.MusicBinder binder = (MediaPlayerService.MusicBinder)service;
+                //get service
+                mMusicService = binder.getService();
+                //pass list
+                mMusicBound = true;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                mMusicBound = false;
+            }
+        };
+
     }
 
     public void setArtistListFragment(MainActivityFragment frag) {
         mFrag = frag;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mPlayIntent == null) {
+            mPlayIntent = new Intent(this, MediaPlayerService.class);
+            bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
+            startService(mPlayIntent);
+        }
+    }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mMusicService != null) {
+            mMusicService.setSeekBar(null);
+        }
+        unbindService(mMusicConnection);
+    }
     @Override
     public void onNewIntent(Intent intent) {
         setIntent(intent);

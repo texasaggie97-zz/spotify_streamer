@@ -6,8 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-
 public class PreviewPlayerActivity extends AppCompatActivity {
+    public final static String LOG_TAG = PreviewPlayerActivity.class.getSimpleName();
     public final static String TRACK_URI_KEY = "track_uri";
     public final static String ROW_NUM_KEY = "row_number";
 
@@ -18,10 +18,15 @@ public class PreviewPlayerActivity extends AppCompatActivity {
         } else {
             setTheme(R.style.DialogTheme);
         }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preview_player);
     }
 
+    @Override
+    public void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -43,5 +48,10 @@ public class PreviewPlayerActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }
