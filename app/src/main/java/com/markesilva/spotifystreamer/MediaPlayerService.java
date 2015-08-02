@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract;
+import com.markesilva.spotifystreamer.utils.NotificationHelper;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -47,6 +48,22 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     public static final String ACTION_PLAY = "com.markesilva.spotifystreamer.PLAY_PAUSE";
     public static final String ACTION_NEXT = "com.markesilva.spotifystreamer.NEXT";
     public static final String ACTION_PREV = "com.markesilva.spotifystreamer.PREVIOUS";
+    public static final String ACTION_UPDATE_POSITION = "com.markesilva.spotifystreamer.UPDATE_POSITION";
+    public static final String ACTION_UPDATE_POSITION_POSITION = "position";
+
+    // Broadcasts
+    public static final String BROADCAST_SONG_UPDATED = "com.markesilva.spotifystreamer.SONG_UPDATED";
+    public static final String BROADCAST_SONG_UPDATED_ALBUM = "album";
+    public static final String BROADCAST_SONG_UPDATED_TRACK = "track";
+    public static final String BROADCAST_SONG_UPDATED_ARTIST = "artist";
+    public static final String BROADCAST_SONG_UPDATED_IMAGE_URL = "image_url";
+    public static final String BROADCAST_SONG_UPDATED_THUMBNAIL_URL = "thumnail_url";
+
+    public static final String BROADCAST_DURATION_UPDATED = "com.markesilva.spotifystreamer.DURATION_UPDATED";
+    public static final String BROADCAST_DURATION_UPDATED_DURATION = "duration";
+
+    public static final String BROADCAST_STATE_UPDATED = "com.markesilva.spotifystreamer.STATE_UPDATED";
+    public static final String BROADCAST_STATE_UPDATED_STATE = "state";
 
     private Uri mSearchUri;
     private Cursor mCursor;
@@ -115,6 +132,12 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
                 case ACTION_PLAY:
                     pausePlay();
                     updateNotificationViews();
+                    break;
+                case ACTION_UPDATE_POSITION:
+                    int pos = intent.getIntExtra(ACTION_UPDATE_POSITION_POSITION, -1);
+                    if (pos != -1) {
+                        seekTo(pos);
+                    }
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid action" + action);
@@ -278,9 +301,9 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             notificationViews.setTextViewText(R.id.notification_track, mCursor.getString(COL_TRACK_NAME));
             String image_url = mCursor.getString(COL_TRACK_IMAGE_URL);
             if (image_url.trim().equals("")) {
-                Picasso.with(this).load(R.drawable.default_image).into(notificationViews, R.id.notification_thumbnail, new int[] {MainActivity.NOTIFICATION_ID});
+                Picasso.with(this).load(R.drawable.default_image).into(notificationViews, R.id.notification_thumbnail, new int[] {NotificationHelper.NOTIFICATION_ID});
             } else {
-                Picasso.with(this).load(image_url).into(notificationViews, R.id.notification_thumbnail, new int[] {MainActivity.NOTIFICATION_ID});
+                Picasso.with(this).load(image_url).into(notificationViews, R.id.notification_thumbnail, new int[] {NotificationHelper.NOTIFICATION_ID});
             }
             if ((mPlayerState == tPlayerState.playing) || (mPlayerState == tPlayerState.preparing)) {
                 notificationViews.setImageViewResource(R.id.notification_play_pause_button, R.drawable.ic_pause_black_24dp);
@@ -291,7 +314,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.mipmap.ic_launcher).setContent(notificationViews);
 
             NotificationManager m = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            m.notify(MainActivity.NOTIFICATION_ID, mBuilder.build());
+            m.notify(NotificationHelper.NOTIFICATION_ID, mBuilder.build());
         }
     }
 
