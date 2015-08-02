@@ -32,8 +32,6 @@ public class PreviewPlayerActivityFragment extends Fragment {
     private ImageButton mNext;
     private ImageButton mPrev;
     private ImageButton mPlay;
-    private int mPlayDrawable;
-    private int mPauseDrawable;
     private View mRootView;
     private Uri mTrackUri;
     private int mPosition;
@@ -52,10 +50,8 @@ public class PreviewPlayerActivityFragment extends Fragment {
             if (mMusicService.isPlaying() == MediaPlayerService.tPlayerState.idle) {
                 mMusicService.setSongs(mTrackUri, mPosition);
                 mMusicService.playSong();
-                mPlay.setImageResource(mPauseDrawable);
             }
-            mMusicService.setViews(mAlbumText, mTrackText, mArtistText, mImageView);
-            mMusicService.setSeekBar(mSeekBar);
+            mMusicService.setPlayerViews(mAlbumText, mTrackText, mArtistText, mImageView, mSeekBar, mPlay);
             mMusicService.updateViews();
             mMusicBound = true;
         }
@@ -96,10 +92,6 @@ public class PreviewPlayerActivityFragment extends Fragment {
         mNext = (ImageButton) mRootView.findViewById(R.id.player_next_button);
         mPrev = (ImageButton) mRootView.findViewById(R.id.player_back_button);
         mPlay = (ImageButton) mRootView.findViewById(R.id.player_play_pause_button);
-        //mPauseDrawable = getResources().getIdentifier("@drawable/ic_play_arrow_black_48dp", null, null);
-        //mPlayDrawable = getResources().getIdentifier("@drawable/ic_play_arrow_black_48dp", null, null);
-        mPauseDrawable = R.drawable.ic_pause_black_48dp;
-        mPlayDrawable = R.drawable.ic_play_arrow_black_48dp;
 
         if ((mNext == null) || (mPrev == null) || (mPlay == null)) {
             // If any of these are null, then something is wrong
@@ -123,11 +115,6 @@ public class PreviewPlayerActivityFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     mMusicService.pausePlay();
-                    if (mMusicService.isPlaying() == MediaPlayerService.tPlayerState.playing) {
-                        mPlay.setImageResource(mPauseDrawable);
-                    } else {
-                        mPlay.setImageResource(mPlayDrawable);
-                    }
 
                     mMusicService.setSeekBar(mSeekBar);
                     mMusicService.updateViews();
@@ -170,7 +157,7 @@ public class PreviewPlayerActivityFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         if (mMusicService != null) {
-            mMusicService.setSeekBar(null);
+            mMusicService.setPlayerViews(null, null, null, null, null, null);
         }
         mActivity.unbindService(mMusicConnection);
     }

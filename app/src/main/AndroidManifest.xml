@@ -59,7 +59,11 @@
                 android:value="com.markesilva.spotifystreamer.ArtistTracksActivity" />
         </activity>
         <service android:name=".MediaPlayerService" android:enabled="true">
-
+            <intent-filter>
+                <action android:name="com.markesilva.spotifystreamer.PLAY_PAUSE" />"
+                <action android:name="com.markesilva.spotifystreamer.NEXT" />"
+                <action android:name="com.markesilva.spotifystreamer.PREVIOUS" />"
+            </intent-filter>
         </service>
     </application>
 

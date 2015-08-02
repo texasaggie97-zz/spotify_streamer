@@ -1,6 +1,8 @@
 package com.markesilva.spotifystreamer;
 
-import android.app.Service;
+import android.app.IntentService;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.media.AudioManager;
@@ -9,8 +11,11 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,15 +31,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * Background music
  */
-public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+public class MediaPlayerService extends IntentService implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
     private static final String LOG_TAG = MediaPlayerService.class.getSimpleName();
     private MediaPlayer mMediaPlayer;
 
-    private SeekBar mSeekBar;
-    private TextView mAlbum;
-    private TextView mTrack;
-    private TextView mArtist;
-    private ImageView mImage;
+    // These are the views that we may need to update in the player
+    private SeekBar mPlayerSeekBar;
+    private TextView mPlayerAlbum;
+    private TextView mPlayerTrack;
+    private TextView mPlayerArtist;
+    private ImageView mPlayerImage;
+    private ImageButton mPlayerPlayButton;
+
+    // Intents from notification
+    public static final String ACTION_PLAY = "com.markesilva.spotifystreamer.PLAY_PAUSE";
+    public static final String ACTION_NEXT = "com.markesilva.spotifystreamer.NEXT";
+    public static final String ACTION_PREV = "com.markesilva.spotifystreamer.PREVIOUS";
 
     private Uri mSearchUri;
     private Cursor mCursor;
@@ -64,6 +76,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     static final int COL_TRACK_NAME = 3;
     static final int COL_ARTIST_NAME = 4;
 
+    public MediaPlayerService(String name) {
+        super(name);
+    }
+
+    public MediaPlayerService() {
+        super("MediaPlayerService");
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(LOG_TAG, "");
@@ -76,6 +96,30 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         mMediaPlayer.stop();
         mMediaPlayer.release();
         return false;
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        Log.v(LOG_TAG, "Intent: " + intent);
+        String action = intent.getAction();
+        if (action != null) {
+            switch(action) {
+                case ACTION_NEXT:
+                    nextSong();
+                    updateNotificationViews();
+                    break;
+                case ACTION_PREV:
+                    prevSong();
+                    updateNotificationViews();
+                    break;
+                case ACTION_PLAY:
+                    pausePlay();
+                    updateNotificationViews();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid action" + action);
+            }
+        }
     }
 
     public void playSong() {
@@ -165,12 +209,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         return mPlayerState;
     }
 
-    public void setViews(TextView album, TextView track, TextView artist, ImageView image)
+    public void setPlayerViews(TextView album, TextView track, TextView artist, ImageView image, SeekBar seekBar, ImageButton play)
     {
-        mAlbum = album;
-        mTrack = track;
-        mArtist = artist;
-        mImage = image;
+        mPlayerAlbum = album;
+        mPlayerTrack = track;
+        mPlayerArtist = artist;
+        mPlayerImage = image;
+        mPlayerPlayButton = play;
+        setSeekBar(seekBar);
     }
 
     // Setting the SeekBar gets it's own function since there is more to it
@@ -182,9 +228,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 mMediaObserver = null;
             }
         } else {
-            mSeekBar = seekBar;
+            mPlayerSeekBar = seekBar;
             if ((mPlayerState != tPlayerState.preparing) && (mPlayerState != tPlayerState.idle)) {
-                mSeekBar.setMax(mMediaPlayer.getDuration());
+                mPlayerSeekBar.setMax(mMediaPlayer.getDuration());
             }
             mMediaObserver = new MediaObserver();
             (new Thread(mMediaObserver)).start();
@@ -194,23 +240,58 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void updateViews() {
         Log.d(LOG_TAG, "updateViews");
         if (mPosition != -1) {
-            if (mAlbum != null) {
-                mAlbum.setText(mCursor.getString(COL_TRACK_ALBUM_NAME));
+            RemoteViews playerView = new RemoteViews(getPackageName(), R.layout.fragment_preview_player);
+            // These are the player views
+            if (mPlayerAlbum != null) {
+                mPlayerAlbum.setText(mCursor.getString(COL_TRACK_ALBUM_NAME));
             }
-            if (mTrack != null) {
-                mTrack.setText(mCursor.getString(COL_TRACK_NAME));
+            if (mPlayerTrack != null) {
+                mPlayerTrack.setText(mCursor.getString(COL_TRACK_NAME));
             }
-            if (mArtist != null) {
-                mArtist.setText(mCursor.getString(COL_ARTIST_NAME));
+            if (mPlayerArtist != null) {
+                 mPlayerArtist.setText(mCursor.getString(COL_ARTIST_NAME));
             }
-            if (mImage != null) {
+            if (mPlayerImage != null) {
                 String image_url = mCursor.getString(COL_TRACK_IMAGE_URL);
                 if (image_url.trim().equals("")) {
-                    Picasso.with(this).load(R.drawable.default_image).error(R.drawable.image_download_error).into(mImage);
+                    Picasso.with(this).load(R.drawable.default_image).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(mPlayerImage);
                 } else {
-                    Picasso.with(this).load(image_url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(mImage);
+                    Picasso.with(this).load(image_url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(mPlayerImage);
                 }
             }
+            if (mPlayerPlayButton != null) {
+                if ((mPlayerState == tPlayerState.playing) || (mPlayerState == tPlayerState.preparing)) {
+                    mPlayerPlayButton.setImageResource(R.drawable.ic_pause_black_48dp);
+                } else {
+                    mPlayerPlayButton.setImageResource(R.drawable.ic_play_arrow_black_48dp);
+                }
+            }
+        }
+        updateNotificationViews();
+    }
+
+    public void updateNotificationViews() {
+        Log.d(LOG_TAG, "updateNotificationViews");
+        if (mPosition != -1) {
+            // Notification update
+            RemoteViews notificationViews = new RemoteViews(getPackageName(), R.layout.notification);
+            notificationViews.setTextViewText(R.id.notification_track, mCursor.getString(COL_TRACK_NAME));
+            String image_url = mCursor.getString(COL_TRACK_IMAGE_URL);
+            if (image_url.trim().equals("")) {
+                Picasso.with(this).load(R.drawable.default_image).into(notificationViews, R.id.notification_thumbnail, new int[] {MainActivity.NOTIFICATION_ID});
+            } else {
+                Picasso.with(this).load(image_url).into(notificationViews, R.id.notification_thumbnail, new int[] {MainActivity.NOTIFICATION_ID});
+            }
+            if ((mPlayerState == tPlayerState.playing) || (mPlayerState == tPlayerState.preparing)) {
+                notificationViews.setImageViewResource(R.id.notification_play_pause_button, R.drawable.ic_pause_black_24dp);
+            } else {
+                notificationViews.setImageViewResource(R.id.notification_play_pause_button, R.drawable.ic_play_arrow_black_24dp);
+            }
+
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.mipmap.ic_launcher).setContent(notificationViews);
+
+            NotificationManager m = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            m.notify(MainActivity.NOTIFICATION_ID, mBuilder.build());
         }
     }
 
@@ -227,8 +308,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        Log.d(LOG_TAG, "OnError - Error code: " + what + " Extra code: " + extra);
+    public boolean onError(MediaPlayer mp,int what, int extra){
+            Log.d(LOG_TAG, "OnError - Error code: " + what + " Extra code: " + extra);
 
         switch(what){
             case -1004:
@@ -290,10 +371,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     @Override
-    public void onPrepared(MediaPlayer mp) {
+    public void onPrepared (MediaPlayer mp) {
         Log.d(LOG_TAG, "onPrepared");
-        if (mSeekBar != null) {
-            mSeekBar.setMax(mMediaPlayer.getDuration());
+        if (mPlayerSeekBar != null) {
+            mPlayerSeekBar.setMax(mMediaPlayer.getDuration());
         }
         mPlayerState = tPlayerState.playing;
         mp.start();
@@ -301,7 +382,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCreate() {
-        Log.d(LOG_TAG, "onCreate");
+            Log.d(LOG_TAG, "onCreate");
         super.onCreate();
         mMediaPlayer = new MediaPlayer();
         initMusicPlayer();
@@ -311,6 +392,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onDestroy() {
         Log.d(LOG_TAG, "onDestroy");
         super.onDestroy();
+        if (mMediaObserver != null) {
+            mMediaObserver.stop();
+            mMediaObserver = null;
+        }
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
+        NotificationManager m = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (m != null) {
+            m.cancelAll();
+        }
         if (mCursor != null) {
             mCursor.close();
         }
@@ -350,9 +443,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         @Override
         public void run() {
             while (!stop.get()) {
-                if (mMediaPlayer != null) {
-                    if (mSeekBar != null) {
-                        mSeekBar.setProgress(mMediaPlayer.getCurrentPosition());
+                if ((mMediaPlayer != null) && (mPlayerState == tPlayerState.playing)) {
+                    if (mPlayerSeekBar != null) {
+                        mPlayerSeekBar.setProgress(mMediaPlayer.getCurrentPosition());
                     }
                     try {
                         Thread.sleep(500);
