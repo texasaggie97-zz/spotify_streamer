@@ -63,6 +63,7 @@
                 <action android:name="com.markesilva.spotifystreamer.PLAY_PAUSE" />"
                 <action android:name="com.markesilva.spotifystreamer.NEXT" />"
                 <action android:name="com.markesilva.spotifystreamer.PREVIOUS" />"
+                <action android:name="com.markesilva.spotifystreamer.UPDATE_POSITION" />
             </intent-filter>
         </service>
     </application>

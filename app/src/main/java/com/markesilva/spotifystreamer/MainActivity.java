@@ -1,25 +1,24 @@
 package com.markesilva.spotifystreamer;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.SearchManager;
-import android.app.TaskStackBuilder;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.RemoteViews;
 import android.widget.SearchView;
 
+import com.markesilva.spotifystreamer.utils.NotificationHelper;
 import com.markesilva.spotifystreamer.utils.ReloadPlayer;
 
 
@@ -31,8 +30,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private SearchView mSearch;
 
     // Notification
-    public static final int NOTIFICATION_ID = 100;
-    private RemoteViews mRemoteViews;
+    private NotificationHelper mNotificationHelper = new NotificationHelper();
 
     private boolean mTwoPane;
 
@@ -43,6 +41,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private boolean mMusicBound = false;
     private ReloadPlayer mReloadPlayer;
 
+    // Set up the BroadcastReceiver
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             }
         };
 
-        configureNotification();
+        mNotificationHelper.configureNotification(this);
     }
 
     public void setArtistListFragment(MainActivityFragment frag) {
@@ -132,6 +137,20 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         super.onDestroy();
         unbindService(mMusicConnection);
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
+    }
+
     @Override
     public void onNewIntent(Intent intent) {
         setIntent(intent);
@@ -193,35 +212,5 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                     .putExtra(ArtistTracksActivityFragment.ARTIST_ID, artistSpotifyId);
             startActivity(intent);
         }
-    }
-
-    private void configureNotification() {
-        mRemoteViews = new RemoteViews(getPackageName(), R.layout.notification);
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.mipmap.ic_launcher).setContent(mRemoteViews);
-
-        // Create intent to launch player activity
-        Intent resultIntent = new Intent(this, PreviewPlayerActivity.class);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        mRemoteViews.setOnClickPendingIntent(R.id.notification, resultPendingIntent);
-
-        resultIntent = new Intent(MediaPlayerService.ACTION_PLAY);
-        resultPendingIntent = PendingIntent.getService(this.getApplicationContext(), 100, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mRemoteViews.setOnClickPendingIntent(R.id.notification_play_pause_button, resultPendingIntent);
-
-        resultIntent = new Intent(MediaPlayerService.ACTION_NEXT);
-        resultPendingIntent = PendingIntent.getService(this.getApplicationContext(), 101, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mRemoteViews.setOnClickPendingIntent(R.id.notification_next_button, resultPendingIntent);
-
-        resultIntent = new Intent(MediaPlayerService.ACTION_PREV);
-        resultPendingIntent = PendingIntent.getService(this.getApplicationContext(), 102, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mRemoteViews.setOnClickPendingIntent(R.id.notification_back_button, resultPendingIntent);
-
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 }
