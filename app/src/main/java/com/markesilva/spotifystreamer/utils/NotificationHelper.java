@@ -73,11 +73,6 @@ public class NotificationHelper {
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         remoteViews.setTextViewText(R.id.notification_track, intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_TRACK));
         String image_url = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_THUMBNAIL_URL);
-//        if (image_url.trim().equals("")) {
-//            Picasso.with(mActivity).load(R.drawable.default_image).into(remoteViews, R.id.notification_thumbnail, new int[]{NOTIFICATION_ID});
-//        } else {
-//            Picasso.with(mActivity).load(image_url).into(remoteViews, R.id.notification_thumbnail, new int[]{NOTIFICATION_ID});
-//        }
 
         if (image_url.trim().equals("")) {
             remoteViews.setImageViewResource(R.id.notification_thumbnail, R.drawable.default_image);

@@ -144,16 +144,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
     public void onNewIntent(Intent intent) {
         setIntent(intent);
         handleIntent(intent);
