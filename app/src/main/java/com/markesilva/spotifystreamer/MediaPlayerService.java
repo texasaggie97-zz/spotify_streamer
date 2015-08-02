@@ -11,7 +11,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract;
-import com.markesilva.spotifystreamer.utils.NotificationHelper;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -82,6 +81,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL,
             SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
             SpotifyContract.TrackEntry.COLUMN_IMAGE_URL,
+            SpotifyContract.TrackEntry.COLUMN_THUMBNAIL_URL,
             SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
             SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME,
     };
@@ -90,8 +90,9 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     static final int COL_TRACK_PREVIEW_URL = 0;
     static final int COL_TRACK_ALBUM_NAME = 1;
     static final int COL_TRACK_IMAGE_URL = 2;
-    static final int COL_TRACK_NAME = 3;
-    static final int COL_ARTIST_NAME = 4;
+    static final int COL_TRACK_THUMBNAIL_URL = 3;
+    static final int COL_TRACK_NAME = 4;
+    static final int COL_ARTIST_NAME = 5;
 
     public MediaPlayerService(String name) {
         super(name);
@@ -123,15 +124,12 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             switch(action) {
                 case ACTION_NEXT:
                     nextSong();
-                    updateNotificationViews();
                     break;
                 case ACTION_PREV:
                     prevSong();
-                    updateNotificationViews();
                     break;
                 case ACTION_PLAY:
                     pausePlay();
-                    updateNotificationViews();
                     break;
                 case ACTION_UPDATE_POSITION:
                     int pos = intent.getIntExtra(ACTION_UPDATE_POSITION_POSITION, -1);
@@ -154,6 +152,8 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             mMediaPlayer.prepareAsync();
             mPlayerState = tPlayerState.preparing;
             updateViews();
+            sendSongUpdate();
+            sendStateUpdate();
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), "Preview could not be loaded", Toast.LENGTH_LONG).show();
             Log.e(LOG_TAG, e.getMessage(), e);
@@ -290,32 +290,6 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
                 }
             }
         }
-        updateNotificationViews();
-    }
-
-    public void updateNotificationViews() {
-        Log.d(LOG_TAG, "updateNotificationViews");
-        if (mPosition != -1) {
-            // Notification update
-            RemoteViews notificationViews = new RemoteViews(getPackageName(), R.layout.notification);
-            notificationViews.setTextViewText(R.id.notification_track, mCursor.getString(COL_TRACK_NAME));
-            String image_url = mCursor.getString(COL_TRACK_IMAGE_URL);
-            if (image_url.trim().equals("")) {
-                Picasso.with(this).load(R.drawable.default_image).into(notificationViews, R.id.notification_thumbnail, new int[] {NotificationHelper.NOTIFICATION_ID});
-            } else {
-                Picasso.with(this).load(image_url).into(notificationViews, R.id.notification_thumbnail, new int[] {NotificationHelper.NOTIFICATION_ID});
-            }
-            if ((mPlayerState == tPlayerState.playing) || (mPlayerState == tPlayerState.preparing)) {
-                notificationViews.setImageViewResource(R.id.notification_play_pause_button, R.drawable.ic_pause_black_24dp);
-            } else {
-                notificationViews.setImageViewResource(R.id.notification_play_pause_button, R.drawable.ic_play_arrow_black_24dp);
-            }
-
-            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.mipmap.ic_launcher).setContent(notificationViews);
-
-            NotificationManager m = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            m.notify(NotificationHelper.NOTIFICATION_ID, mBuilder.build());
-        }
     }
 
     @Override
@@ -400,6 +374,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             mPlayerSeekBar.setMax(mMediaPlayer.getDuration());
         }
         mPlayerState = tPlayerState.playing;
+        sendStateUpdate();
         mp.start();
     }
 
@@ -447,6 +422,30 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         mCursor = getContentResolver().query(mSearchUri, TRACK_COLUMNS, null, null, null);
         mPosition = pos;
         mCursor.moveToPosition(mPosition);
+    }
+
+    private void sendSongUpdate() {
+        Log.d(LOG_TAG, "sendSongUpdate");
+        Intent intent = new Intent(BROADCAST_SONG_UPDATED);
+
+        // Add the data
+        intent.putExtra(BROADCAST_SONG_UPDATED_TRACK, mCursor.getString(COL_TRACK_NAME));
+        intent.putExtra(BROADCAST_SONG_UPDATED_ALBUM, mCursor.getString(COL_TRACK_ALBUM_NAME));
+        intent.putExtra(BROADCAST_SONG_UPDATED_ARTIST, mCursor.getString(COL_ARTIST_NAME));
+        intent.putExtra(BROADCAST_SONG_UPDATED_IMAGE_URL, mCursor.getString(COL_TRACK_IMAGE_URL));
+        intent.putExtra(BROADCAST_SONG_UPDATED_THUMBNAIL_URL, mCursor.getString(COL_TRACK_THUMBNAIL_URL));
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void sendStateUpdate() {
+        Log.d(LOG_TAG, "sendStateUpdate");
+        Intent intent = new Intent(BROADCAST_STATE_UPDATED);
+
+        // Add the data
+        intent.putExtra(BROADCAST_STATE_UPDATED_STATE, mPlayerState);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     public class MusicBinder extends Binder {

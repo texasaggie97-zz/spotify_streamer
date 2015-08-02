@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private SearchView mSearch;
 
     // Notification
-    private NotificationHelper mNotificationHelper = new NotificationHelper();
+    private NotificationHelper mNotificationHelper = new NotificationHelper(this);
 
     private boolean mTwoPane;
 
@@ -45,7 +46,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            HandleBroadcast h = new HandleBroadcast(intent);
+            h.execute();
         }
     };
 
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             }
         };
 
-        mNotificationHelper.configureNotification(this);
+        mNotificationHelper.configureNotification();
     }
 
     public void setArtistListFragment(MainActivityFragment frag) {
@@ -125,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     @Override
     public void onStart() {
         super.onStart();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
         if (mPlayIntent == null) {
             mPlayIntent = new Intent(this, MediaPlayerService.class);
             bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
@@ -136,19 +140,17 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     public void onDestroy() {
         super.onDestroy();
         unbindService(mMusicConnection);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
     }
 
     @Override
@@ -211,6 +213,33 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
                     .putExtra(ArtistTracksActivityFragment.ARTIST_NAME, artistName)
                     .putExtra(ArtistTracksActivityFragment.ARTIST_ID, artistSpotifyId);
             startActivity(intent);
+        }
+    }
+
+    private class HandleBroadcast extends AsyncTask<Void, Void, Void> {
+        private final String LOG_TAG = HandleBroadcast.class.getSimpleName();
+        private Intent mIntent;
+
+        public HandleBroadcast(Intent intent) {
+            mIntent = intent;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            String action = mIntent.getAction();
+            if (action != null) {
+                switch (action) {
+                    case MediaPlayerService.BROADCAST_STATE_UPDATED:
+                        mNotificationHelper.updatePlayButton(mIntent);
+                        break;
+                    case MediaPlayerService.BROADCAST_SONG_UPDATED:
+                        mNotificationHelper.updateNotificationViews(mIntent);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid action" + action);
+                }
+            }
+            return null;
         }
     }
 }
