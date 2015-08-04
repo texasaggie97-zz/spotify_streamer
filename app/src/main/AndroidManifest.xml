@@ -64,6 +64,8 @@
                 <action android:name="com.markesilva.spotifystreamer.NEXT" />"
                 <action android:name="com.markesilva.spotifystreamer.PREVIOUS" />"
                 <action android:name="com.markesilva.spotifystreamer.UPDATE_POSITION" />
+                <action android:name="com.markesilva.spotifystreamer.UPDATE_TRACK_LIST" />
+                <action android:name="com.markesilva.spotifystreamer.SEND_UPDATES" />
             </intent-filter>
         </service>
     </application>

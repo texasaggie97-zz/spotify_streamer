@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -126,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public void onStart() {
+        Log.d(LOG_TAG, "onStart");
         super.onStart();
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
@@ -138,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public void onDestroy() {
+        Log.d(LOG_TAG, "onDestroy");
         super.onDestroy();
         unbindService(mMusicConnection);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);

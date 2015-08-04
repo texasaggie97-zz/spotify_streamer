@@ -15,13 +15,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract;
-import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,23 +30,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Background music
  */
 public class MediaPlayerService extends IntentService implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-    private static final String LOG_TAG = MediaPlayerService.class.getSimpleName();
-    private MediaPlayer mMediaPlayer;
-
-    // These are the views that we may need to update in the player
-    private SeekBar mPlayerSeekBar;
-    private TextView mPlayerAlbum;
-    private TextView mPlayerTrack;
-    private TextView mPlayerArtist;
-    private ImageView mPlayerImage;
-    private ImageButton mPlayerPlayButton;
-
     // Intents from notification
     public static final String ACTION_PLAY = "com.markesilva.spotifystreamer.PLAY_PAUSE";
     public static final String ACTION_NEXT = "com.markesilva.spotifystreamer.NEXT";
     public static final String ACTION_PREV = "com.markesilva.spotifystreamer.PREVIOUS";
     public static final String ACTION_UPDATE_POSITION = "com.markesilva.spotifystreamer.UPDATE_POSITION";
     public static final String ACTION_UPDATE_POSITION_POSITION = "position";
+    public static final String ACTION_UPDATE_TRACK_LIST = "com.markesilva.spotifystreamer.UPDATE_TRACK_LIST";
+    public static final String ACTION_UPDATE_TRACK_LIST_URI = "uri";
+    public static final String ACTION_UPDATE_TRACK_LIST_POSITION = "position";
+    public static final String ACTION_SEND_UPDATES = "com.markesilva.spotifystreamer.SEND_UPDATES";
 
     // Broadcasts
     public static final String BROADCAST_SONG_UPDATED = "com.markesilva.spotifystreamer.SONG_UPDATED";
@@ -61,14 +52,12 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     public static final String BROADCAST_DURATION_UPDATED = "com.markesilva.spotifystreamer.DURATION_UPDATED";
     public static final String BROADCAST_DURATION_UPDATED_DURATION = "duration";
 
+    public static final String BROADCAST_POSITION_UPDATED = "com.markesilva.spotifystreamer.POSITION_UPDATED";
+    public static final String BROADCAST_POSITION_UPDATED_POSITION = "position";
+
     public static final String BROADCAST_STATE_UPDATED = "com.markesilva.spotifystreamer.STATE_UPDATED";
     public static final String BROADCAST_STATE_UPDATED_STATE = "state";
 
-    private Uri mSearchUri;
-    private Cursor mCursor;
-    private int mPosition;
-    private MediaObserver mMediaObserver;
-    private final IBinder mMusicBind = new MusicBinder();
     public enum tPlayerState {
         idle,
         preparing,
@@ -76,6 +65,17 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         paused,
     }
     tPlayerState mPlayerState = tPlayerState.idle;
+
+
+    // Private or override items
+    private static final String LOG_TAG = MediaPlayerService.class.getSimpleName();
+    private MediaPlayer mMediaPlayer;
+
+    private Uri mSearchUri;
+    private Cursor mCursor;
+    private int mPosition;
+    private MediaObserver mMediaObserver;
+    private final IBinder mMusicBind = new MusicBinder();
 
     private static final String[] TRACK_COLUMNS = {
             SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL,
@@ -137,13 +137,47 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
                         seekTo(pos);
                     }
                     break;
+                case ACTION_UPDATE_TRACK_LIST:
+                    int song = intent.getIntExtra(ACTION_UPDATE_TRACK_LIST_POSITION, -1);
+                    Uri uri = intent.getParcelableExtra(ACTION_UPDATE_TRACK_LIST_URI);
+                    setSongs(uri, song);
+                    break;
+                case ACTION_SEND_UPDATES:
+                    sendUpdates();
+                    break;
                 default:
                     throw new IllegalArgumentException("Invalid action" + action);
             }
         }
     }
 
-    public void playSong() {
+    private void setSongs(Uri u, int pos) {
+        Log.d(LOG_TAG, "setSongs");
+        // Nothing to do
+        if ((u == null) || (pos == -1)) {
+            sendUpdates();
+            return;
+        }
+
+        boolean restartSong = false;
+        if ((mSearchUri == null) || !mSearchUri.equals(u)) {
+            mSearchUri = u;
+            mCursor = getContentResolver().query(mSearchUri, TRACK_COLUMNS, null, null, null);
+            restartSong = true;
+        }
+        if (mPosition != pos) {
+            mPosition = pos;
+            mCursor.moveToPosition(mPosition);
+            restartSong = true;
+        }
+        if (restartSong) {
+            playSong();
+        } else {
+            sendUpdates();
+        }
+    }
+
+    private void playSong() {
         Log.d(LOG_TAG, "playSong");
         String previewUrl = mCursor.getString(COL_TRACK_PREVIEW_URL);
         try {
@@ -151,7 +185,6 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             mMediaPlayer.setDataSource(previewUrl);
             mMediaPlayer.prepareAsync();
             mPlayerState = tPlayerState.preparing;
-            updateViews();
             sendSongUpdate();
             sendStateUpdate();
         } catch (IOException e) {
@@ -160,34 +193,13 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         }
     }
 
-    public void setSong(int s) {
-        Log.d(LOG_TAG, "setSong");
-        mPosition = s;
-        mCursor.moveToPosition(mPosition);
-        playSong();
-    }
-
-    public void pause() {
-        Log.d(LOG_TAG, "pause");
-        mMediaPlayer.pause();
-    }
-
-    public void start() {
-        Log.d(LOG_TAG, "start");
-        mMediaPlayer.start();
-    }
-
-    public void seekTo(int p) {
+    private void seekTo(int p) {
         Log.d(LOG_TAG, "seekTo");
         mMediaPlayer.seekTo(p);
+        sendPositionUpdate();
     }
 
-    public int getCurrentPosition() {
-        Log.d(LOG_TAG, "getCurrentPosition");
-        return mMediaPlayer.getCurrentPosition();
-    }
-
-    public void nextSong() {
+    private void nextSong() {
         Log.d(LOG_TAG, "nextSong");
         if (!mCursor.moveToNext()) {
             mCursor.moveToFirst();
@@ -198,7 +210,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         }
     }
 
-    public void prevSong() {
+    private void prevSong() {
         Log.d(LOG_TAG, "prevSong");
         if (!mCursor.moveToPrevious()) {
             mCursor.moveToLast();
@@ -209,15 +221,22 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         }
     }
 
-    public void pausePlay() {
+    private void pausePlay() {
         Log.d(LOG_TAG, "pausePlay");
         if (mPlayerState == tPlayerState.playing) {
             mMediaPlayer.pause();
             mPlayerState = tPlayerState.paused;
+            if (mMediaObserver != null) {
+                mMediaObserver.stop();
+                mMediaObserver = null;
+            }
         } else {
             mMediaPlayer.start();
             mPlayerState = tPlayerState.playing;
+            mMediaObserver = new MediaObserver();
+            (new Thread(mMediaObserver)).start();
         }
+        sendStateUpdate();
     }
 
     public void reset() {
@@ -230,66 +249,6 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     public tPlayerState isPlaying() {
         Log.d(LOG_TAG, "isPlaying");
         return mPlayerState;
-    }
-
-    public void setPlayerViews(TextView album, TextView track, TextView artist, ImageView image, SeekBar seekBar, ImageButton play)
-    {
-        mPlayerAlbum = album;
-        mPlayerTrack = track;
-        mPlayerArtist = artist;
-        mPlayerImage = image;
-        mPlayerPlayButton = play;
-        setSeekBar(seekBar);
-    }
-
-    // Setting the SeekBar gets it's own function since there is more to it
-    public void setSeekBar(SeekBar seekBar) {
-        Log.d(LOG_TAG, "setSeekBar");
-        if (seekBar == null) {
-            if (mMediaObserver != null) {
-                mMediaObserver.stop();
-                mMediaObserver = null;
-            }
-        } else {
-            mPlayerSeekBar = seekBar;
-            if ((mPlayerState != tPlayerState.preparing) && (mPlayerState != tPlayerState.idle)) {
-                mPlayerSeekBar.setMax(mMediaPlayer.getDuration());
-            }
-            mMediaObserver = new MediaObserver();
-            (new Thread(mMediaObserver)).start();
-        }
-    }
-
-    public void updateViews() {
-        Log.d(LOG_TAG, "updateViews");
-        if (mPosition != -1) {
-            RemoteViews playerView = new RemoteViews(getPackageName(), R.layout.fragment_preview_player);
-            // These are the player views
-            if (mPlayerAlbum != null) {
-                mPlayerAlbum.setText(mCursor.getString(COL_TRACK_ALBUM_NAME));
-            }
-            if (mPlayerTrack != null) {
-                mPlayerTrack.setText(mCursor.getString(COL_TRACK_NAME));
-            }
-            if (mPlayerArtist != null) {
-                 mPlayerArtist.setText(mCursor.getString(COL_ARTIST_NAME));
-            }
-            if (mPlayerImage != null) {
-                String image_url = mCursor.getString(COL_TRACK_IMAGE_URL);
-                if (image_url.trim().equals("")) {
-                    Picasso.with(this).load(R.drawable.default_image).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(mPlayerImage);
-                } else {
-                    Picasso.with(this).load(image_url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(mPlayerImage);
-                }
-            }
-            if (mPlayerPlayButton != null) {
-                if ((mPlayerState == tPlayerState.playing) || (mPlayerState == tPlayerState.preparing)) {
-                    mPlayerPlayButton.setImageResource(R.drawable.ic_pause_black_48dp);
-                } else {
-                    mPlayerPlayButton.setImageResource(R.drawable.ic_play_arrow_black_48dp);
-                }
-            }
-        }
     }
 
     @Override
@@ -370,12 +329,12 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     @Override
     public void onPrepared (MediaPlayer mp) {
         Log.d(LOG_TAG, "onPrepared");
-        if (mPlayerSeekBar != null) {
-            mPlayerSeekBar.setMax(mMediaPlayer.getDuration());
-        }
         mPlayerState = tPlayerState.playing;
         sendStateUpdate();
+        sendDurationUpdate();
         mp.start();
+        mMediaObserver = new MediaObserver();
+        (new Thread(mMediaObserver)).start();
     }
 
     @Override
@@ -407,7 +366,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         }
     }
 
-    public void initMusicPlayer() {
+    private void initMusicPlayer() {
         Log.d(LOG_TAG, "initMusicPlayer");
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -416,26 +375,20 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         mMediaPlayer.setOnErrorListener(this);
     }
 
-    public void setSongs(Uri u, int pos) {
-        Log.d(LOG_TAG, "setSongs");
-        mSearchUri = u;
-        mCursor = getContentResolver().query(mSearchUri, TRACK_COLUMNS, null, null, null);
-        mPosition = pos;
-        mCursor.moveToPosition(mPosition);
-    }
-
     private void sendSongUpdate() {
         Log.d(LOG_TAG, "sendSongUpdate");
-        Intent intent = new Intent(BROADCAST_SONG_UPDATED);
+        if (mCursor != null) {
+            Intent intent = new Intent(BROADCAST_SONG_UPDATED);
 
-        // Add the data
-        intent.putExtra(BROADCAST_SONG_UPDATED_TRACK, mCursor.getString(COL_TRACK_NAME));
-        intent.putExtra(BROADCAST_SONG_UPDATED_ALBUM, mCursor.getString(COL_TRACK_ALBUM_NAME));
-        intent.putExtra(BROADCAST_SONG_UPDATED_ARTIST, mCursor.getString(COL_ARTIST_NAME));
-        intent.putExtra(BROADCAST_SONG_UPDATED_IMAGE_URL, mCursor.getString(COL_TRACK_IMAGE_URL));
-        intent.putExtra(BROADCAST_SONG_UPDATED_THUMBNAIL_URL, mCursor.getString(COL_TRACK_THUMBNAIL_URL));
+            // Add the data
+            intent.putExtra(BROADCAST_SONG_UPDATED_TRACK, mCursor.getString(COL_TRACK_NAME));
+            intent.putExtra(BROADCAST_SONG_UPDATED_ALBUM, mCursor.getString(COL_TRACK_ALBUM_NAME));
+            intent.putExtra(BROADCAST_SONG_UPDATED_ARTIST, mCursor.getString(COL_ARTIST_NAME));
+            intent.putExtra(BROADCAST_SONG_UPDATED_IMAGE_URL, mCursor.getString(COL_TRACK_IMAGE_URL));
+            intent.putExtra(BROADCAST_SONG_UPDATED_THUMBNAIL_URL, mCursor.getString(COL_TRACK_THUMBNAIL_URL));
 
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }
     }
 
     private void sendStateUpdate() {
@@ -446,6 +399,37 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         intent.putExtra(BROADCAST_STATE_UPDATED_STATE, mPlayerState);
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void sendPositionUpdate() {
+        // Too noisy
+        // Log.d(LOG_TAG, "sendPositionUpdate");
+        if (mPlayerState != tPlayerState.idle) {
+            Intent intent = new Intent(BROADCAST_POSITION_UPDATED);
+
+            // Add the data
+            intent.putExtra(BROADCAST_POSITION_UPDATED_POSITION, mMediaPlayer.getCurrentPosition());
+
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }
+    }
+
+    private void sendDurationUpdate() {
+        Log.d(LOG_TAG, "sendDurationUpdate");
+        if (mPlayerState != tPlayerState.idle) {
+            Intent intent = new Intent(BROADCAST_DURATION_UPDATED);
+
+            // Add the data
+            intent.putExtra(BROADCAST_DURATION_UPDATED_DURATION, mMediaPlayer.getDuration());
+
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }
+    }
+
+    private void sendUpdates() {
+        sendStateUpdate();
+        sendDurationUpdate();
+        sendSongUpdate();
     }
 
     public class MusicBinder extends Binder {
@@ -466,9 +450,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         public void run() {
             while (!stop.get()) {
                 if ((mMediaPlayer != null) && (mPlayerState == tPlayerState.playing)) {
-                    if (mPlayerSeekBar != null) {
-                        mPlayerSeekBar.setProgress(mMediaPlayer.getCurrentPosition());
-                    }
+                    sendPositionUpdate();
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

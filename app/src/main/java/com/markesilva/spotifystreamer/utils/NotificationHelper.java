@@ -10,6 +10,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.markesilva.spotifystreamer.ArtistTracksActivity;
 import com.markesilva.spotifystreamer.MainActivity;
 import com.markesilva.spotifystreamer.MediaPlayerService;
 import com.markesilva.spotifystreamer.PreviewPlayerActivity;
@@ -40,18 +41,9 @@ public class NotificationHelper {
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         mBuilder = new NotificationCompat.Builder(mActivity).setSmallIcon(R.mipmap.ic_launcher).setContent(remoteViews);
 
-        // Create intent to launch player activity
-        Intent resultIntent = new Intent(mActivity, PreviewPlayerActivity.class);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(mActivity);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        remoteViews.setOnClickPendingIntent(R.id.notification, resultPendingIntent);
-
-        resultIntent = new Intent(MediaPlayerService.ACTION_PLAY);
-        resultPendingIntent = PendingIntent.getService(mActivity.getApplicationContext(), 100, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        // Set up intents for button controls on notification
+        Intent resultIntent = new Intent(MediaPlayerService.ACTION_PLAY);
+        PendingIntent resultPendingIntent = PendingIntent.getService(mActivity.getApplicationContext(), 100, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.notification_play_pause_button, resultPendingIntent);
 
         resultIntent = new Intent(MediaPlayerService.ACTION_NEXT);
