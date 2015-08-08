@@ -27,11 +27,15 @@ import java.io.IOException;
  * Helper class for creating and updating the notification
  */
 public class NotificationHelper {
+    public static final int NOTIFICATION_ID = 100;
+
     private static final String LOG_TAG = NotificationHelper.class.getSimpleName();
     private static Activity mActivity;
     private static NotificationCompat.Builder mBuilder;
     private static NotificationManager mNotificationManager;
-    public static final int NOTIFICATION_ID = 100;
+    // We never want to show the notification unless the vaiews have been updated at least
+    // once.
+    private static boolean mUpdatedAtLeastOnce = false;
 
     public NotificationHelper(Activity a) {
         Log.d(LOG_TAG, "NotificationHelper");
@@ -73,10 +77,13 @@ public class NotificationHelper {
     }
 
     public static void showNotification() {
-        if (mNotificationManager == null) {
-            mNotificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (mUpdatedAtLeastOnce) {
+            configureNotification(true);
+
+            Intent intent = new Intent(mActivity, MediaPlayerService.class);
+            intent.setAction(MediaPlayerService.ACTION_SEND_UPDATES);
+            mActivity.startService(intent);
         }
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
     // This function should not run on the main thread
@@ -100,6 +107,7 @@ public class NotificationHelper {
         }
 
         mBuilder.setContent(remoteViews);
+        mUpdatedAtLeastOnce = true;
         if (showNotification) {
             mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
         }
