@@ -36,12 +36,19 @@ public class SettingsFragment extends PreferenceFragment {
             String stringValue = value.toString();
 
             if (preference instanceof CheckBoxPreference) {
-                if (stringValue.equals("false")) {
-                    NotificationHelper.hideNotification();
-                } else {
-                    NotificationHelper.showNotification();
+                // If it is the notification setting, we update the notification appropriately
+                if (preference.getKey().equals(getString(R.string.pref_notification_key))) {
+                    if (stringValue.equals("false")) {
+                        NotificationHelper.hideNotification();
+                    } else {
+                        NotificationHelper.showNotification();
+                    }
                 }
             } else {
+                // Country needs to be upper case. We change the display to show uppercase here.
+                if (preference.getKey().equals(getString(R.string.pref_spotify_locale_key))) {
+                    stringValue = stringValue.toUpperCase();
+                }
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);
