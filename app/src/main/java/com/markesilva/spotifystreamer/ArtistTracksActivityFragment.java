@@ -1,16 +1,13 @@
 package com.markesilva.spotifystreamer;
 
-import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -47,69 +44,28 @@ import kaaes.spotify.webapi.android.models.Tracks;
  * Fragment for the top track view.
  */
 public class ArtistTracksActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    final private String LOG_TAG = ArtistTracksActivityFragment.class.getSimpleName();
-    private static final int TRACK_LOADER = 1;
     static final String ARTIST_NAME = "artistname";
     static final String ARTIST_ID = "artistid";
-    SpotifyApi mSpotifyApi = null;
-    SpotifyService mSpotify = null;
-    TrackListAdapter mTrackListAdapter = null;
-    ListView mTrackListView = null;
-    String mArtistName;
-    String mArtistId;
-
-    // We need to talk to the music service
-    private MediaPlayerService mMusicService;
-    private Intent mPlayIntent;
-    private boolean mMusicBound = false;
-    private ServiceConnection mMusicConnection = new ServiceConnection(){
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MediaPlayerService.MusicBinder binder = (MediaPlayerService.MusicBinder)service;
-            //get service
-            mMusicService = binder.getService();
-            //pass list
-            mMusicBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mMusicBound = false;
-        }
-    };
-
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (mPlayIntent == null) {
-            mPlayIntent = new Intent(getActivity(), MediaPlayerService.class);
-            getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mMusicBound) {
-            getActivity().unbindService(mMusicConnection);
-        }
-    }
-
-    private static final String[] TRACK_COLUMNS = {
-            SpotifyContract.TrackEntry.TABLE_NAME + "." + SpotifyContract.TrackEntry._ID,
-            SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
-            SpotifyContract.TrackEntry.COLUMN_IMAGE_URL,
-            SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
-    };
-
     // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
     // COL_TRACK_ID isn't used directly but needs to exist in the query
     static final int COL_TRACK_ID = 0;
     static final int COL_TRACK_ALBUM_NAME = 1;
     static final int COL_TRACK_IMAGE_URL = 2;
     static final int COL_TRACK_NAME = 3;
+    private static final int TRACK_LOADER = 1;
+    private static final String[] TRACK_COLUMNS = {
+            SpotifyContract.TrackEntry.TABLE_NAME + "." + SpotifyContract.TrackEntry._ID,
+            SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
+            SpotifyContract.TrackEntry.COLUMN_IMAGE_URL,
+            SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
+    };
+    final private String LOG_TAG = ArtistTracksActivityFragment.class.getSimpleName();
+    SpotifyApi mSpotifyApi = null;
+    SpotifyService mSpotify = null;
+    TrackListAdapter mTrackListAdapter = null;
+    ListView mTrackListView = null;
+    String mArtistName;
+    String mArtistId;
 
     public ArtistTracksActivityFragment() {
     }
@@ -150,11 +106,14 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                     if (cursor != null) {
+                        Intent resetIntent = new Intent(getActivity(), MediaPlayerService.class);
+                        resetIntent.setAction(MediaPlayerService.ACTION_RESET);
+                        getActivity().startService(resetIntent);
+
                         Intent playerIntent = new Intent(getActivity(), PreviewPlayerActivity.class);
                         Uri trackListUri = SpotifyContract.TrackEntry.buildTracksWithArtistId(mArtistId);
                         playerIntent.putExtra(PreviewPlayerActivity.TRACK_URI_KEY, trackListUri);
                         playerIntent.putExtra(PreviewPlayerActivity.ROW_NUM_KEY, position);
-                        mMusicService.reset();
                         startActivity(playerIntent);
                     }
                 }
@@ -356,13 +315,6 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             mContext = context;
         }
 
-        // private view holder class
-        private class ViewHolder {
-            ImageView imageView;
-            TextView txtAlbum;
-            TextView txtTrack;
-        }
-
         @Override
         public View newView(Context context, Cursor c, ViewGroup parent) {
             View view = LayoutInflater.from(context).inflate(R.layout.track_listitem, parent, false);
@@ -388,6 +340,13 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                 holder.txtAlbum.setText(cursor.getString(COL_TRACK_ALBUM_NAME));
                 holder.txtTrack.setText(cursor.getString(COL_TRACK_NAME));
             }
+        }
+
+        // private view holder class
+        private class ViewHolder {
+            ImageView imageView;
+            TextView txtAlbum;
+            TextView txtTrack;
         }
     }
 }

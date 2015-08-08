@@ -69,6 +69,7 @@
                 <action android:name="com.markesilva.spotifystreamer.UPDATE_POSITION" />
                 <action android:name="com.markesilva.spotifystreamer.UPDATE_TRACK_LIST" />
                 <action android:name="com.markesilva.spotifystreamer.SEND_UPDATES" />
+                <action android:name="com.markesilva.spotifystreamer.RESET" />
             </intent-filter>
         </service>
 

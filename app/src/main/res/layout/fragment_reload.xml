@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><!-- This is basically an empty view since this fragment is to add a menu item to multiple activities -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:orientation="vertical">
+
+</LinearLayout>

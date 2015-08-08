@@ -1,8 +1,22 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment_main"
-    android:name="com.markesilva.spotifystreamer.MainActivityFragment"
-    tools:context="com.markesilva.spotifystreamer.MainActivityFragment"
-    tools:layout="@android:layout/list_content"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <fragment
+        android:id="@+id/fragment_main"
+        android:name="com.markesilva.spotifystreamer.MainActivityFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.markesilva.spotifystreamer.MainActivityFragment"
+        tools:layout="@android:layout/list_content" />
+
+    <fragment
+        android:id="@+id/fragment_reload_player"
+        android:name="com.markesilva.spotifystreamer.utils.ReloadFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        tools:context="com.markesilva.spotifystreamer.utils.ReloadFragment" />
+
+</LinearLayout>

@@ -1,9 +1,22 @@
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/artist_tracks_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.markesilva.spotifystreamer.ArtistTracksActivity"
-    tools:ignore="MergeRootFrame"
-    />
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/artist_tracks_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.markesilva.spotifystreamer.ArtistTracksActivity"
+        tools:ignore="MergeRootFrame" />
+
+    <fragment
+        android:id="@+id/fragment_reload_player"
+        android:name="com.markesilva.spotifystreamer.utils.ReloadFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        tools:context="com.markesilva.spotifystreamer.utils.ReloadFragment" />
+
+</LinearLayout>

@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Background music
  */
 public class MediaPlayerService extends IntentService implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-    // Intents from notification
+    // Incoming Intent actions and values
     public static final String ACTION_PLAY = "com.markesilva.spotifystreamer.PLAY_PAUSE";
     public static final String ACTION_NEXT = "com.markesilva.spotifystreamer.NEXT";
     public static final String ACTION_PREV = "com.markesilva.spotifystreamer.PREVIOUS";
@@ -35,7 +35,10 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     public static final String ACTION_UPDATE_TRACK_LIST = "com.markesilva.spotifystreamer.UPDATE_TRACK_LIST";
     public static final String ACTION_UPDATE_TRACK_LIST_URI = "uri";
     public static final String ACTION_UPDATE_TRACK_LIST_POSITION = "position";
+
     public static final String ACTION_SEND_UPDATES = "com.markesilva.spotifystreamer.SEND_UPDATES";
+
+    public static final String ACTION_RESET = "com.markesilva.spotifystreamer.RESET";
 
     // Broadcasts
     public static final String BROADCAST_SONG_UPDATED = "com.markesilva.spotifystreamer.SONG_UPDATED";
@@ -53,26 +56,15 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
 
     public static final String BROADCAST_STATE_UPDATED = "com.markesilva.spotifystreamer.STATE_UPDATED";
     public static final String BROADCAST_STATE_UPDATED_STATE = "state";
-
-    public enum tPlayerState {
-        idle,
-        preparing,
-        playing,
-        paused,
-    }
-    tPlayerState mPlayerState = tPlayerState.idle;
-
-
+    // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
+    static final int COL_TRACK_PREVIEW_URL = 0;
+    static final int COL_TRACK_ALBUM_NAME = 1;
+    static final int COL_TRACK_IMAGE_URL = 2;
+    static final int COL_TRACK_THUMBNAIL_URL = 3;
+    static final int COL_TRACK_NAME = 4;
+    static final int COL_ARTIST_NAME = 5;
     // Private or override items
     private static final String LOG_TAG = MediaPlayerService.class.getSimpleName();
-    private MediaPlayer mMediaPlayer;
-
-    private Uri mSearchUri;
-    private Cursor mCursor;
-    private int mPosition;
-    private MediaObserver mMediaObserver;
-    private final IBinder mMusicBind = new MusicBinder();
-
     private static final String[] TRACK_COLUMNS = {
             SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL,
             SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
@@ -81,15 +73,13 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
             SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME,
     };
-
-    // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
-    static final int COL_TRACK_PREVIEW_URL = 0;
-    static final int COL_TRACK_ALBUM_NAME = 1;
-    static final int COL_TRACK_IMAGE_URL = 2;
-    static final int COL_TRACK_THUMBNAIL_URL = 3;
-    static final int COL_TRACK_NAME = 4;
-    static final int COL_ARTIST_NAME = 5;
-
+    private final IBinder mMusicBind = new MusicBinder();
+    tPlayerState mPlayerState = tPlayerState.idle;
+    private MediaPlayer mMediaPlayer;
+    private Uri mSearchUri;
+    private Cursor mCursor;
+    private int mPosition;
+    private MediaObserver mMediaObserver;
     public MediaPlayerService(String name) {
         super(name);
     }
@@ -100,12 +90,12 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(LOG_TAG, "");
+        Log.d(LOG_TAG, "onBind");
         return mMusicBind;
     }
 
     @Override
-    public boolean onUnbind(Intent intent){
+    public boolean onUnbind(Intent intent) {
         Log.d(LOG_TAG, "onUnbind");
         mMediaPlayer.stop();
         mMediaPlayer.release();
@@ -140,6 +130,9 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
                     break;
                 case ACTION_SEND_UPDATES:
                     sendUpdates();
+                    break;
+                case ACTION_RESET:
+                    reset();
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid action" + action);
@@ -235,7 +228,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         sendStateUpdate();
     }
 
-    public void reset() {
+    private void reset() {
         if (mPlayerState != tPlayerState.idle) {
             mPlayerState = tPlayerState.idle;
             mMediaPlayer.reset();
@@ -260,10 +253,10 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     }
 
     @Override
-    public boolean onError(MediaPlayer mp,int what, int extra){
-            Log.d(LOG_TAG, "OnError - Error code: " + what + " Extra code: " + extra);
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        Log.d(LOG_TAG, "OnError - Error code: " + what + " Extra code: " + extra);
 
-        switch(what){
+        switch (what) {
             case -1004:
                 Log.d(LOG_TAG, "MEDIA_ERROR_IO");
                 break;
@@ -290,7 +283,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
                 break;
         }
 
-        switch(extra) {
+        switch (extra) {
             case 800:
                 Log.d(LOG_TAG, "MEDIA_INFO_BAD_INTERLEAVING");
                 break;
@@ -323,7 +316,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     }
 
     @Override
-    public void onPrepared (MediaPlayer mp) {
+    public void onPrepared(MediaPlayer mp) {
         Log.d(LOG_TAG, "onPrepared");
         mPlayerState = tPlayerState.playing;
         sendStateUpdate();
@@ -335,7 +328,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
 
     @Override
     public void onCreate() {
-            Log.d(LOG_TAG, "onCreate");
+        Log.d(LOG_TAG, "onCreate");
         super.onCreate();
         mMediaPlayer = new MediaPlayer();
         initMusicPlayer();
@@ -428,8 +421,15 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         sendSongUpdate();
     }
 
+    public enum tPlayerState {
+        idle,
+        preparing,
+        playing,
+        paused,
+    }
+
     public class MusicBinder extends Binder {
-        MediaPlayerService getService() {
+        public MediaPlayerService getService() {
             Log.d(LOG_TAG, "getService");
             return MediaPlayerService.this;
         }
