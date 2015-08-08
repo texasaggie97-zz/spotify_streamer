@@ -32,9 +32,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private MainActivityFragment mFrag;
     private SearchView mSearch;
 
-    // Notification
-    private NotificationHelper mNotificationHelper = new NotificationHelper(this);
-
     private boolean mTwoPane;
 
     // The main activity will own the music service so that it is available at all times
@@ -118,7 +115,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         };
 
         // We don't want to show the notification at this time so always pass is false.
-        mNotificationHelper.configureNotification(false);
+        NotificationHelper.setActivity(this);
+        NotificationHelper.configureNotification(false);
     }
 
     public void setArtistListFragment(MainActivityFragment frag) {
@@ -226,10 +224,10 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             if (action != null) {
                 switch (action) {
                     case MediaPlayerService.BROADCAST_STATE_UPDATED:
-                        mNotificationHelper.updatePlayButton(mIntent, Utility.getPreferredNotificationEnabled(mActivity));
+                        NotificationHelper.updatePlayButton(mIntent, Utility.getPreferredNotificationEnabled(mActivity));
                         break;
                     case MediaPlayerService.BROADCAST_SONG_UPDATED:
-                        mNotificationHelper.updateNotificationViews(mIntent, Utility.getPreferredNotificationEnabled(mActivity));
+                        NotificationHelper.updateNotificationViews(mIntent, Utility.getPreferredNotificationEnabled(mActivity));
                         break;
                     default:
                         throw new IllegalArgumentException("Invalid action" + action);

@@ -28,17 +28,20 @@ import java.io.IOException;
  */
 public class NotificationHelper {
     private static final String LOG_TAG = NotificationHelper.class.getSimpleName();
-    Activity mActivity;
-    NotificationCompat.Builder mBuilder;
-    NotificationManager mNotificationManager;
+    private static Activity mActivity;
+    private static NotificationCompat.Builder mBuilder;
+    private static NotificationManager mNotificationManager;
     public static final int NOTIFICATION_ID = 100;
 
     public NotificationHelper(Activity a) {
         Log.d(LOG_TAG, "NotificationHelper");
+    }
+
+    public static void setActivity(Activity a) {
         mActivity = a;
     }
 
-    public void configureNotification(boolean showNotification) {
+    public static void configureNotification(boolean showNotification) {
         Log.d(LOG_TAG, "configureNotification");
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         mBuilder = new NotificationCompat.Builder(mActivity).setSmallIcon(R.mipmap.ic_launcher).setContent(remoteViews);
@@ -62,14 +65,14 @@ public class NotificationHelper {
         }
     }
 
-    public void hideNotification() {
+    public static void hideNotification() {
         if (mNotificationManager == null) {
             mNotificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
         }
         mNotificationManager.cancel(NOTIFICATION_ID);
     }
 
-    public void showNotification() {
+    public static void showNotification() {
         if (mNotificationManager == null) {
             mNotificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
         }
@@ -77,7 +80,7 @@ public class NotificationHelper {
     }
 
     // This function should not run on the main thread
-    public void updateNotificationViews(Intent intent, boolean showNotification) {
+    public static void updateNotificationViews(Intent intent, boolean showNotification) {
         Log.d(LOG_TAG, "updateNotificationViews");
         // Notification update
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
@@ -102,7 +105,7 @@ public class NotificationHelper {
         }
     }
 
-    public void updatePlayButton(Intent intent, boolean showNotification) {
+    public static void updatePlayButton(Intent intent, boolean showNotification) {
         Log.d(LOG_TAG, "updatePlayButton");
 
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);

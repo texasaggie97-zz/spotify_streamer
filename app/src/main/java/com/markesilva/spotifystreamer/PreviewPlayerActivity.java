@@ -13,8 +13,6 @@ public class PreviewPlayerActivity extends AppCompatActivity {
     public final static String TRACK_URI_KEY = "track_uri";
     public final static String ROW_NUM_KEY = "row_number";
 
-    // Notification
-    private NotificationHelper mNotificationHelper = new NotificationHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +25,7 @@ public class PreviewPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preview_player);
 
-        mNotificationHelper.configureNotification(Utility.getPreferredNotificationEnabled(this));
+        NotificationHelper.configureNotification(Utility.getPreferredNotificationEnabled(this));
     }
 
     @Override

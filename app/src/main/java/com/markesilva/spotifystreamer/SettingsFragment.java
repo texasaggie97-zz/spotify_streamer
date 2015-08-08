@@ -45,11 +45,10 @@ public class SettingsFragment extends PreferenceFragment {
             String stringValue = value.toString();
 
             if (preference instanceof CheckBoxPreference) {
-                NotificationHelper n = new NotificationHelper(mActivity);
                 if (stringValue.equals("false")) {
-                    n.hideNotification();
+                    NotificationHelper.hideNotification();
                 } else {
-                    n.showNotification();
+                    NotificationHelper.showNotification();
                 }
             } else {
                 // For all other preferences, set the summary to the value's
