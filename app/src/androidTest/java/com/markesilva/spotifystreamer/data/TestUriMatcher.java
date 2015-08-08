@@ -4,8 +4,6 @@ import android.content.UriMatcher;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import junit.framework.Test;
-
 /**
  * Created by marke on 7/18/2015.
  *

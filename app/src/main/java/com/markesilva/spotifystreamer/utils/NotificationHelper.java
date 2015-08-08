@@ -1,10 +1,8 @@
 package com.markesilva.spotifystreamer.utils;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,10 +10,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.markesilva.spotifystreamer.ArtistTracksActivity;
-import com.markesilva.spotifystreamer.MainActivity;
 import com.markesilva.spotifystreamer.MediaPlayerService;
-import com.markesilva.spotifystreamer.PreviewPlayerActivity;
 import com.markesilva.spotifystreamer.R;
 import com.squareup.picasso.Picasso;
 

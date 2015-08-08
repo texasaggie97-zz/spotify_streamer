@@ -1,17 +1,10 @@
 package com.markesilva.spotifystreamer;
 
-import android.app.Activity;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
-import android.text.TextUtils;
 
 import com.markesilva.spotifystreamer.utils.NotificationHelper;
 
@@ -22,12 +15,10 @@ import com.markesilva.spotifystreamer.utils.NotificationHelper;
  */
 public class SettingsFragment extends PreferenceFragment {
     private final static String LOG_TAG = SettingsFragment.class.getSimpleName();
-    private Activity mActivity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mActivity = getActivity();
 
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.pref_main);

@@ -52,24 +52,16 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     // Specify columns we need
     private static final String[] ARTIST_COLUMNS = {
             SpotifyContract.SearchQueryEntry.TABLE_NAME + "." + SpotifyContract.SearchQueryEntry._ID,
-            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING,
-            SpotifyContract.SearchQueryEntry.COLUMN_QUERY_TIME,
-            SpotifyContract.ArtistEntry.TABLE_NAME + "." + SpotifyContract.ArtistEntry._ID,
             SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME,
-            SpotifyContract.ArtistEntry.COLUMN_SEARCH_ID,
             SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID,
             SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL
     };
 
     // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
     static final int COL_QEURY_ID = 0;
-    static final int COL_QEURY_STRING = 1;
-    static final int COL_QEURY_TIME = 2;
-    static final int COL_ARTIST_ID = 3;
-    static final int COL_ARTIST_NAME = 4;
-    static final int COL_ARTIST_SEARCH_ID = 5;
-    static final int COL_ARTIST_SPOTIFY_ID = 6;
-    static final int COL_ARTIST_THUMBNAIL_URL = 7;
+    static final int COL_ARTIST_NAME = 1;
+    static final int COL_ARTIST_SPOTIFY_ID = 2;
+    static final int COL_ARTIST_THUMBNAIL_URL = 3;
 
     public interface Callback {
         // The activity needs to be the one to dispatch this since it can be to another
@@ -82,8 +74,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     public MainActivityFragment() {
     }
-
-    public static String ARTIST_QUERY = "artist_query";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

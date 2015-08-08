@@ -1,6 +1,8 @@
 package com.markesilva.spotifystreamer.data;
 
 import android.annotation.TargetApi;
+import android.support.annotation.NonNull;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -8,7 +10,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 /**
@@ -87,58 +88,6 @@ public class SpotifyProvider extends ContentProvider {
     public static final String sArtistIdStringSelection =
             SpotifyContract.ArtistEntry.TABLE_NAME+
                     "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID+ " = ? ";
-
-//    //location.location_setting = ? AND date >= ?
-//    private static final String sLocationSettingWithStartDateSelection =
-//            WeatherContract.LocationEntry.TABLE_NAME+
-//                    "." + WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? AND " +
-//                    WeatherContract.WeatherEntry.COLUMN_DATE + " >= ? ";
-//
-//    //location.location_setting = ? AND date = ?
-//    private static final String sLocationSettingAndDaySelection =
-//            WeatherContract.LocationEntry.TABLE_NAME +
-//                    "." + WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? AND " +
-//                    WeatherContract.WeatherEntry.COLUMN_DATE + " = ? ";
-//
-//    private Cursor getWeatherByLocationSetting(Uri uri, String[] projection, String sortOrder) {
-//        String locationSetting = WeatherContract.WeatherEntry.getLocationSettingFromUri(uri);
-//        long startDate = WeatherContract.WeatherEntry.getStartDateFromUri(uri);
-//
-//        String[] selectionArgs;
-//        String selection;
-//
-//        if (startDate == 0) {
-//            selection = sLocationSettingSelection;
-//            selectionArgs = new String[]{locationSetting};
-//        } else {
-//            selectionArgs = new String[]{locationSetting, Long.toString(startDate)};
-//            selection = sLocationSettingWithStartDateSelection;
-//        }
-//
-//        return sWeatherByLocationSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-//                projection,
-//                selection,
-//                selectionArgs,
-//                null,
-//                null,
-//                sortOrder
-//        );
-//    }
-//
-//    private Cursor getWeatherByLocationSettingAndDate(
-//            Uri uri, String[] projection, String sortOrder) {
-//        String locationSetting = WeatherContract.WeatherEntry.getLocationSettingFromUri(uri);
-//        long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
-//
-//        return sWeatherByLocationSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-//                projection,
-//                sLocationSettingAndDaySelection,
-//                new String[]{locationSetting, Long.toString(date)},
-//                null,
-//                null,
-//                sortOrder
-//        );
-//    }
 
     static UriMatcher buildUriMatcher() {
         // I know what you're thinking.  Why create a UriMatcher when you can use regular
@@ -423,14 +372,6 @@ public class SpotifyProvider extends ContentProvider {
         }
         return rowsDeleted;
     }
-
-//    private void normalizeDate(ContentValues values) {
-//        // normalize the date value
-//        if (values.containsKey(WeatherContract.WeatherEntry.COLUMN_DATE)) {
-//            long dateValue = values.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
-//            values.put(WeatherContract.WeatherEntry.COLUMN_DATE, WeatherContract.normalizeDate(dateValue));
-//        }
-//    }
 
     @Override
     public int update(

@@ -2,7 +2,6 @@ package com.markesilva.spotifystreamer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 
 /**

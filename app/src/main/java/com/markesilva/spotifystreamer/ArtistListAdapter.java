@@ -9,7 +9,6 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.markesilva.spotifystreamer.data.SpotifyContract;
 import com.squareup.picasso.Picasso;
 
 

@@ -5,8 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
-import com.markesilva.spotifystreamer.data.SpotifyDbHelper;
-
 import java.util.HashSet;
 
 /**

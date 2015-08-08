@@ -1,13 +1,10 @@
 package com.markesilva.spotifystreamer;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.net.Uri;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -40,33 +37,6 @@ public class PreviewPlayerActivityFragment extends Fragment {
     private View mRootView;
     private Uri mTrackUri;
     private int mPosition;
-    // private ServiceConnection mMusicConnection;
-    private Intent mPlayIntent;
-    private MediaPlayerService mMusicService;
-    private boolean mMusicBound = false;
-//    private ServiceConnection mMusicConnection = new ServiceConnection(){
-//
-//        @Override
-//        public void onServiceConnected(ComponentName name, IBinder service) {
-//            MediaPlayerService.MusicBinder binder = (MediaPlayerService.MusicBinder)service;
-//            //get service
-//            mMusicService = binder.getService();
-//            if (mMusicService.isPlaying() == MediaPlayerService.tPlayerState.idle) {
-//                mMusicService.setSongs(mTrackUri, mPosition);
-//                mMusicService.playSong();
-//            } else {
-//                // We may be coming back from being rotated or reloaded from the action bar
-//                // We need to get the current values
-//                mMusicService.sendUpdates();
-//            }
-//            mMusicBound = true;
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName name) {
-//            mMusicBound = false;
-//        }
-//    };
 
     // Set up the BroadcastReceiver
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
