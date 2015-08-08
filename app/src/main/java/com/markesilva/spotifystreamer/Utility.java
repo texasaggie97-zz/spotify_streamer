@@ -13,7 +13,7 @@ public class Utility {
     public static String getPreferredLocale(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         // Country needs to be upper case. We change the display to show uppercase here.
-        return prefs.getString(context.getString(R.string.pref_spotify_locale_key), context.getString(R.string.pref_spotify_locale_key)).toUpperCase();
+        return prefs.getString(context.getString(R.string.pref_spotify_locale_key), context.getString(R.string.pref_spotify_locale_default)).toUpperCase();
     }
 
     public static boolean getPreferredNotificationEnabled(Context context) {
