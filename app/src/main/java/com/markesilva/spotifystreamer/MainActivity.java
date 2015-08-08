@@ -1,5 +1,6 @@
 package com.markesilva.spotifystreamer;
 
+import android.app.Activity;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -42,12 +43,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private MediaPlayerService mMusicService;
     private boolean mMusicBound = false;
     private ReloadPlayer mReloadPlayer;
+    private Activity mActivity = this;
 
     // Set up the BroadcastReceiver
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            HandleBroadcast h = new HandleBroadcast(intent);
+            HandleBroadcast h = new HandleBroadcast(intent, mActivity);
             h.execute();
         }
     };
@@ -77,9 +79,6 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
             @Override
             public boolean onQueryTextChange(String newText) {
-//                if (mFrag != null) {
-//                    mFrag.updateArtistList(newText);
-//                }
                 return false;
             }
         });
@@ -118,7 +117,8 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             }
         };
 
-        mNotificationHelper.configureNotification();
+        // We don't want to show the notification at this time so always pass is false.
+        mNotificationHelper.configureNotification(false);
     }
 
     public void setArtistListFragment(MainActivityFragment frag) {
@@ -179,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         } else if (id == R.id.reload_player) {
             return mReloadPlayer.relauchPlayer(item);
@@ -212,8 +213,10 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private class HandleBroadcast extends AsyncTask<Void, Void, Void> {
         private final String LOG_TAG = HandleBroadcast.class.getSimpleName();
         private Intent mIntent;
+        private Activity mActivity;
 
-        public HandleBroadcast(Intent intent) {
+        public HandleBroadcast(Intent intent, Activity activity) {
+            mActivity = activity;
             mIntent = intent;
         }
 
@@ -223,10 +226,10 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             if (action != null) {
                 switch (action) {
                     case MediaPlayerService.BROADCAST_STATE_UPDATED:
-                        mNotificationHelper.updatePlayButton(mIntent);
+                        mNotificationHelper.updatePlayButton(mIntent, Utility.getPreferredNotificationEnabled(mActivity));
                         break;
                     case MediaPlayerService.BROADCAST_SONG_UPDATED:
-                        mNotificationHelper.updateNotificationViews(mIntent);
+                        mNotificationHelper.updateNotificationViews(mIntent, Utility.getPreferredNotificationEnabled(mActivity));
                         break;
                     default:
                         throw new IllegalArgumentException("Invalid action" + action);

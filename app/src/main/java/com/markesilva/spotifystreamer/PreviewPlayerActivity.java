@@ -6,10 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.markesilva.spotifystreamer.utils.NotificationHelper;
+
 public class PreviewPlayerActivity extends AppCompatActivity {
     public final static String LOG_TAG = PreviewPlayerActivity.class.getSimpleName();
     public final static String TRACK_URI_KEY = "track_uri";
     public final static String ROW_NUM_KEY = "row_number";
+
+    // Notification
+    private NotificationHelper mNotificationHelper = new NotificationHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +26,8 @@ public class PreviewPlayerActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preview_player);
+
+        mNotificationHelper.configureNotification(Utility.getPreferredNotificationEnabled(this));
     }
 
     @Override

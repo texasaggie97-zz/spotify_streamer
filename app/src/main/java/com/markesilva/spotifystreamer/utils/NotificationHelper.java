@@ -1,5 +1,7 @@
 package com.markesilva.spotifystreamer.utils;
 
+import android.app.Activity;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -26,17 +28,17 @@ import java.io.IOException;
  */
 public class NotificationHelper {
     private static final String LOG_TAG = NotificationHelper.class.getSimpleName();
-    MainActivity mActivity;
+    Activity mActivity;
     NotificationCompat.Builder mBuilder;
     NotificationManager mNotificationManager;
     public static final int NOTIFICATION_ID = 100;
 
-    public NotificationHelper(MainActivity a) {
+    public NotificationHelper(Activity a) {
         Log.d(LOG_TAG, "NotificationHelper");
         mActivity = a;
     }
 
-    public void configureNotification() {
+    public void configureNotification(boolean showNotification) {
         Log.d(LOG_TAG, "configureNotification");
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         mBuilder = new NotificationCompat.Builder(mActivity).setSmallIcon(R.mipmap.ic_launcher).setContent(remoteViews);
@@ -55,11 +57,27 @@ public class NotificationHelper {
         remoteViews.setOnClickPendingIntent(R.id.notification_back_button, resultPendingIntent);
 
         mNotificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (showNotification) {
+            mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        }
+    }
+
+    public void hideNotification() {
+        if (mNotificationManager == null) {
+            mNotificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+        }
+        mNotificationManager.cancel(NOTIFICATION_ID);
+    }
+
+    public void showNotification() {
+        if (mNotificationManager == null) {
+            mNotificationManager = (NotificationManager) mActivity.getSystemService(Context.NOTIFICATION_SERVICE);
+        }
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
     // This function should not run on the main thread
-    public void updateNotificationViews(Intent intent) {
+    public void updateNotificationViews(Intent intent, boolean showNotification) {
         Log.d(LOG_TAG, "updateNotificationViews");
         // Notification update
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
@@ -79,10 +97,12 @@ public class NotificationHelper {
         }
 
         mBuilder.setContent(remoteViews);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        if (showNotification) {
+            mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        }
     }
 
-    public void updatePlayButton(Intent intent) {
+    public void updatePlayButton(Intent intent, boolean showNotification) {
         Log.d(LOG_TAG, "updatePlayButton");
 
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
@@ -94,6 +114,8 @@ public class NotificationHelper {
         }
 
         mBuilder.setContent(remoteViews);
-        mNotificationManager.notify(NotificationHelper.NOTIFICATION_ID, mBuilder.build());
+        if (showNotification) {
+            mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        }
     }
 }

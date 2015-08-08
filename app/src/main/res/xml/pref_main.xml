@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:title="@string/pref_spotify_locale"
+        android:summary="@string/pref_spotify_locale_summary"
+        android:key="@string/pref_spotify_locale_key"
+        android:defaultValue="@string/pref_spotify_locale_default"
+        >
+
+    </EditTextPreference>
+    <CheckBoxPreference
+        android:title="@string/pref_notification"
+        android:summary="@string/pref_notification_summary"
+        android:key="pref_notification_enabled"
+        android:defaultValue="true"
+        />
+
+</PreferenceScreen>

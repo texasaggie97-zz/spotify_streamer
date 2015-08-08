@@ -27,4 +27,7 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
+    <!-- Settings activity theme. -->
+    <style name="SettingsTheme" parent="AppTheme">
+    </style>
 </resources>

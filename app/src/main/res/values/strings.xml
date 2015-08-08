@@ -8,4 +8,12 @@
     <string name="title_activity_preview_player">Preview</string>
     <string name="hello_world">Hello world!</string>
     <string name="reload_player">Now playing</string>
+    <string name="pref_spotify_locale">Spotify Locale</string>
+    <string name="pref_spotify_locale_summary">Spotify locale for previews</string>
+    <string name="pref_spotify_locale_key">pref_spotify_locale</string>
+    <string name="pref_spotify_locale_default">US</string>
+    <string name="pref_notification">Notifications</string>
+    <string name="pref_notification_summary">Notifications enabled</string>
+    <string name="pref_notification_key">pref_notification_enabled</string>
+    <string name="title_activity_settings">Settings</string>
 </resources>

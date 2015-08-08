@@ -235,9 +235,8 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             try {
                 Map<String, Object> options = new HashMap<>();
 
-                // We are being very US centric here. This should come from settings or using
-                // some other method for determining location
-                options.put("country", "US");
+                String locale = Utility.getPreferredLocale(mContext);
+                options.put("country", locale);
                 p = mSpotify.getArtistTopTrack(artistId[0], options);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Execption getting artist info" + e);
