@@ -20,7 +20,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 /**
- * A placeholder fragment containing a simple view.
+ * Preview player UI
  */
 public class PreviewPlayerActivityFragment extends Fragment {
     private static final String LOG_TAG = PreviewPlayerActivityFragment.class.getSimpleName();
