@@ -7,7 +7,7 @@ import android.preference.PreferenceManager;
 /**
  * Created by marke on 8/7/2015.
  *
- * Helper funcitons
+ * Helper functions
  */
 public class Utility {
     public static String getPreferredLocale(Context context) {
