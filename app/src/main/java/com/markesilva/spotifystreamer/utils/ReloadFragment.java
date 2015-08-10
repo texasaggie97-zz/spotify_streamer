@@ -1,12 +1,12 @@
 package com.markesilva.spotifystreamer.utils;
 
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,11 +28,26 @@ import com.markesilva.spotifystreamer.R;
 public class ReloadFragment extends Fragment {
     private static final String LOG_TAG = ReloadFragment.class.getSimpleName();
 
-    // We need to be able to query the media player service t oget the current state
-    private Intent mPlayIntent;
-    private ServiceConnection mMusicConnection;
-    private MediaPlayerService mMusicService;
-    private boolean mMusicBound = false;
+    private MediaPlayerService.tPlayerState mPlayerState;
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action != null) {
+                switch (action) {
+                    case MediaPlayerService.BROADCAST_STATE_UPDATED:
+                        updateRunState(intent);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid action" + action);
+                }
+            }
+        }
+    };
+
+    public void updateRunState(Intent intent) {
+        mPlayerState = (MediaPlayerService.tPlayerState) intent.getSerializableExtra(MediaPlayerService.BROADCAST_STATE_UPDATED_STATE);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -45,36 +60,24 @@ public class ReloadFragment extends Fragment {
         Log.d(LOG_TAG, "onCreateView");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        mMusicConnection = new ServiceConnection() {
-
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                Log.d(LOG_TAG, "onServiceConnected");
-                MediaPlayerService.MusicBinder binder = (MediaPlayerService.MusicBinder) service;
-                //get service
-                mMusicService = binder.getService();
-                //pass list
-                mMusicBound = true;
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                Log.d(LOG_TAG, "onServiceDisconnected");
-                mMusicBound = false;
-            }
-        };
-
-        if (mPlayIntent == null) {
-            mPlayIntent = new Intent(getActivity(), MediaPlayerService.class);
-            getActivity().bindService(mPlayIntent, mMusicConnection, Context.BIND_AUTO_CREATE);
-            getActivity().startService(mPlayIntent);
-        }
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Log.d(LOG_TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.reload_player, menu);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -94,7 +97,7 @@ public class ReloadFragment extends Fragment {
 
     public boolean relauchPlayer(MenuItem item) {
         Log.d(LOG_TAG, "relauchPlayer");
-        if (mMusicService.isPlaying() != MediaPlayerService.tPlayerState.idle) {
+        if (mPlayerState != MediaPlayerService.tPlayerState.idle) {
             Intent playerIntent = new Intent(getActivity(), PreviewPlayerActivity.class);
             getActivity().startActivity(playerIntent);
             return true;
