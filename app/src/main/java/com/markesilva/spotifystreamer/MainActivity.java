@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         super.onStart();
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
+        startService(new Intent(mActivity, MediaPlayerService.class));
     }
 
     @Override
@@ -114,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         Log.d(LOG_TAG, "onDestroy");
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        if (isFinishing()) {
+            stopService(new Intent(mActivity, MediaPlayerService.class));
+        }
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.markesilva.spotifystreamer;
 
-import android.app.IntentService;
 import android.app.NotificationManager;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * Background music
  */
-public class MediaPlayerService extends IntentService implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+public class MediaPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
     // Incoming Intent actions and values
     public static final String ACTION_PLAY = "com.markesilva.spotifystreamer.PLAY_PAUSE";
     public static final String ACTION_NEXT = "com.markesilva.spotifystreamer.NEXT";
@@ -81,13 +81,6 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     private Cursor mCursor;
     private int mPosition;
     private MediaObserver mMediaObserver;
-    public MediaPlayerService(String name) {
-        super(name);
-    }
-
-    public MediaPlayerService() {
-        super("MediaPlayerService");
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -103,8 +96,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
         return false;
     }
 
-    @Override
-    protected void onHandleIntent(Intent intent) {
+    protected void handleIntent(Intent intent) {
         Log.v(LOG_TAG, "Intent: " + intent);
         String action = intent.getAction();
         if (action != null) {
@@ -139,6 +131,13 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
                     throw new IllegalArgumentException("Invalid action" + action);
             }
         }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        handleIntent(intent);
+
+        return START_STICKY;
     }
 
     private void setSongs(Uri u, int pos) {
