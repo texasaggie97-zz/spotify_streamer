@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,7 +30,13 @@ import com.markesilva.spotifystreamer.R;
 public class SharedFragment extends Fragment {
     private static final String LOG_TAG = SharedFragment.class.getSimpleName();
 
+    // Handling the media player service
     private MediaPlayerService.tPlayerState mPlayerState;
+    // sharing
+    private ShareActionProvider mShareTrackActionProvider;
+    private String mTrackName;
+    private String mArtistName;
+    private String mTrackUrl;
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -37,6 +45,9 @@ public class SharedFragment extends Fragment {
                 switch (action) {
                     case MediaPlayerService.BROADCAST_STATE_UPDATED:
                         updateRunState(intent);
+                        break;
+                    case MediaPlayerService.BROADCAST_SONG_UPDATED:
+                        updateTrackInfo(intent);
                         break;
                     default:
                         throw new IllegalArgumentException("Invalid action" + action);
@@ -47,6 +58,32 @@ public class SharedFragment extends Fragment {
 
     public void updateRunState(Intent intent) {
         mPlayerState = (MediaPlayerService.tPlayerState) intent.getSerializableExtra(MediaPlayerService.BROADCAST_STATE_UPDATED_STATE);
+    }
+
+    public void updateTrackInfo(Intent intent) {
+        Log.d(LOG_TAG, "updateTrackInfo");
+        mTrackName = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_TRACK);
+        mArtistName = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_ARTIST);
+        mTrackUrl = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_TRACK_URL);
+
+        mShareTrackActionProvider.setShareIntent(createTrackShareIntent());
+        getActivity().invalidateOptionsMenu();
+    }
+
+    private Intent createTrackShareIntent() {
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_TEXT, "I am currently listening to " + mTrackName + " by " + mArtistName);
+        return i;
+    }
+
+    private Intent createUrlShareIntent() {
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_TEXT, mTrackUrl);
+        return i;
     }
 
     @Override
@@ -66,6 +103,12 @@ public class SharedFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Log.d(LOG_TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.shared_menu, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share_track);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareTrackActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
     }
 
     @Override
@@ -78,6 +121,12 @@ public class SharedFragment extends Fragment {
     public void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
+
+        // We need to tell the media service to rebroadcast song data
+        Intent i = new Intent(getActivity(), MediaPlayerService.class);
+        i.setAction(MediaPlayerService.ACTION_SEND_UPDATES);
+        getActivity().startService(i);
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -90,6 +139,9 @@ public class SharedFragment extends Fragment {
         //noinspection SimplifiableIfStatement
         if (id == R.id.reload_player) {
             return relauchPlayer(item);
+        } else if (id == R.id.action_share_preview_url) {
+            startActivity(Intent.createChooser(createUrlShareIntent(), getString(R.string.share_via)));
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

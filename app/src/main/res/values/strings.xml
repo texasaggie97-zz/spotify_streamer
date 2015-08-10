@@ -2,6 +2,8 @@
     <string name="app_name">Spotify Streamer</string>
     <string name="artist_hint">Artist</string>
     <string name="action_settings">Settings</string>
+    <string name="action_share">Share</string>
+    <string name="action_share_url">Share URL</string>
     <string name="title_activity_artist_tracks">Top 10 Tracks</string>
     <string name="search_label">Search</string>
     <string name="search_hint">Artist name</string>
@@ -16,4 +18,5 @@
     <string name="pref_notification_summary">Notifications enabled</string>
     <string name="pref_notification_key">pref_notification_enabled</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="share_via">Share via</string>
 </resources>
