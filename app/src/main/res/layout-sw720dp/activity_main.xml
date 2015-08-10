@@ -24,9 +24,9 @@
 
     <fragment
         android:id="@+id/fragment_reload_player"
-        android:name="com.markesilva.spotifystreamer.utils.ReloadFragment"
+        android:name="com.markesilva.spotifystreamer.utils.SharedFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        tools:context="com.markesilva.spotifystreamer.utils.ReloadFragment" />
+        tools:context="com.markesilva.spotifystreamer.utils.SharedFragment" />
 
 </LinearLayout>

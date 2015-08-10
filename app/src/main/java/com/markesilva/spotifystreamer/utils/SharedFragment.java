@@ -25,8 +25,8 @@ import com.markesilva.spotifystreamer.R;
  * <p/>
  * Utility class for helping with relaunching the preview player from multiple places
  */
-public class ReloadFragment extends Fragment {
-    private static final String LOG_TAG = ReloadFragment.class.getSimpleName();
+public class SharedFragment extends Fragment {
+    private static final String LOG_TAG = SharedFragment.class.getSimpleName();
 
     private MediaPlayerService.tPlayerState mPlayerState;
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -65,7 +65,7 @@ public class ReloadFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         Log.d(LOG_TAG, "onCreateOptionsMenu");
-        inflater.inflate(R.menu.reload_player, menu);
+        inflater.inflate(R.menu.shared_menu, menu);
     }
 
     @Override
