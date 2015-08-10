@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,7 +25,7 @@ import com.squareup.picasso.Picasso;
 public class PreviewPlayerActivityFragment extends Fragment {
     private static final String LOG_TAG = PreviewPlayerActivityFragment.class.getSimpleName();
     private static final String POSITION_KEY = "position";
-
+    PreviewPlayerActivity mActivity;
     private TextView mAlbumText;
     private TextView mTrackText;
     private TextView mArtistText;
@@ -37,7 +37,6 @@ public class PreviewPlayerActivityFragment extends Fragment {
     private View mRootView;
     private Uri mTrackUri;
     private int mPosition;
-
     // Set up the BroadcastReceiver
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
@@ -63,8 +62,6 @@ public class PreviewPlayerActivityFragment extends Fragment {
             }
         }
     };
-
-    PreviewPlayerActivity mActivity;
 
     public PreviewPlayerActivityFragment() {
     }
@@ -165,6 +162,12 @@ public class PreviewPlayerActivityFragment extends Fragment {
 
         mActivity.startService(intent);
 
+        // We add some padding dynamically around out player
+        float scale = getResources().getDisplayMetrics().density;
+        int sizeInDp = 25;
+        int dpInPixels = (int) (sizeInDp * scale + .05f);
+        mRootView.setPadding(dpInPixels, dpInPixels, dpInPixels, dpInPixels);
+
         return mRootView;
     }
 
@@ -193,6 +196,12 @@ public class PreviewPlayerActivityFragment extends Fragment {
         LocalBroadcastManager.getInstance(mActivity).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_POSITION_UPDATED));
     }
 
+    @Override
+    public void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(POSITION_KEY, mPosition);
+    }
+
     public void updateViews(Intent intent) {
         Log.d(LOG_TAG, "updateViews");
         if (mAlbumText != null) {
@@ -212,6 +221,9 @@ public class PreviewPlayerActivityFragment extends Fragment {
                 Picasso.with(mActivity).load(image_url).placeholder(R.drawable.default_image).error(R.drawable.image_download_error).into(mImageView);
             }
         }
+
+        // We need to save the cursor position so we have it to put into the saved state so that we don't reset to the original song on rotate
+        mPosition = intent.getIntExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_POSITION, -1);
     }
 
     public void updateRunState(Intent intent) {

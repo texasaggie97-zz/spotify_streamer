@@ -1,9 +1,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.markesilva.spotifystreamer.PreviewPlayerActivityFragment">
 
     <TextView
@@ -14,60 +16,60 @@
 
     <TextView
         android:id="@+id/player_album_name"
-        android:layout_below="@+id/player_artist_name"
         style="@style/PlayerTextStyle"
+        android:layout_below="@+id/player_artist_name"
         android:layout_centerHorizontal="true"
         />
 
     <ImageView
-        android:layout_below="@+id/player_album_name"
         android:id="@+id/player_track_image"
         style="@style/PlayerImageStyle"
+        android:layout_below="@+id/player_album_name"
         android:layout_centerHorizontal="true"
         />
 
     <TextView
         android:id="@+id/player_track_name"
-        android:layout_below="@+id/player_track_image"
         style="@style/PlayerTextStyle"
+        android:layout_below="@+id/player_track_image"
         android:layout_centerHorizontal="true"
         />
 
     <SeekBar
         android:id="@+id/player_progress_bar"
-        android:layout_below="@+id/player_track_name"
         style="@style/PlayerProgressStyle"
+        android:layout_below="@+id/player_track_name"
         android:layout_centerHorizontal="true"
         />
 
     <ImageButton
         android:id="@+id/player_back_button"
-        android:paddingTop="@dimen/player_vert_padding"
-        android:layout_below="@+id/player_progress_bar"
-        android:src="@drawable/ic_skip_previous_black_48dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/player_progress_bar"
+        android:layout_below="@+id/player_progress_bar"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:src="@drawable/ic_skip_previous_black_48dp"
         />
 
     <ImageButton
         android:id="@+id/player_play_pause_button"
-        android:paddingTop="@dimen/player_vert_padding"
-        android:layout_below="@+id/player_progress_bar"
-        android:src="@drawable/ic_play_arrow_black_48dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/player_progress_bar"
         android:layout_centerHorizontal="true"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:src="@drawable/ic_play_arrow_black_48dp"
         />
 
     <ImageButton
         android:id="@+id/player_next_button"
-        android:layout_below="@+id/player_progress_bar"
-        android:paddingTop="@dimen/player_vert_padding"
-        android:src="@drawable/ic_skip_next_black_48dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignRight="@+id/player_progress_bar"
+        android:layout_below="@+id/player_progress_bar"
+        android:paddingTop="@dimen/player_vert_padding"
+        android:src="@drawable/ic_skip_next_black_48dp"
         />
 
 </RelativeLayout>

@@ -47,6 +47,7 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
     public static final String BROADCAST_SONG_UPDATED_ARTIST = "artist";
     public static final String BROADCAST_SONG_UPDATED_IMAGE_URL = "image_url";
     public static final String BROADCAST_SONG_UPDATED_THUMBNAIL_URL = "thumnail_url";
+    public static final String BROADCAST_SONG_UPDATED_POSITION = "position";
 
     public static final String BROADCAST_DURATION_UPDATED = "com.markesilva.spotifystreamer.DURATION_UPDATED";
     public static final String BROADCAST_DURATION_UPDATED_DURATION = "duration";
@@ -375,6 +376,9 @@ public class MediaPlayerService extends IntentService implements MediaPlayer.OnP
             intent.putExtra(BROADCAST_SONG_UPDATED_ARTIST, mCursor.getString(COL_ARTIST_NAME));
             intent.putExtra(BROADCAST_SONG_UPDATED_IMAGE_URL, mCursor.getString(COL_TRACK_IMAGE_URL));
             intent.putExtra(BROADCAST_SONG_UPDATED_THUMBNAIL_URL, mCursor.getString(COL_TRACK_THUMBNAIL_URL));
+
+            // Put the cursor position into the broadcast so clients can keep track where we are in the search results
+            intent.putExtra(BROADCAST_SONG_UPDATED_POSITION, mPosition);
 
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         }

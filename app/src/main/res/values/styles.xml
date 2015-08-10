@@ -5,7 +5,11 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
+    <style name="PortraitDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+
+    </style>
+
+    <style name="LandDialogTheme" parent="Theme.AppCompat.Light.Dialog">
 
     </style>
 

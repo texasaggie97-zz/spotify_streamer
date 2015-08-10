@@ -16,10 +16,11 @@ public class PreviewPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // We have different themes depending on orientation
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            setTheme(R.style.AppTheme);
+            setTheme(R.style.LandDialogTheme);
         } else {
-            setTheme(R.style.DialogTheme);
+            setTheme(R.style.PortraitDialogTheme);
         }
 
         super.onCreate(savedInstanceState);
