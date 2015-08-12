@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,13 +16,14 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.markesilva.spotifystreamer.utils.LogUtils;
 import com.squareup.picasso.Picasso;
 
 /**
  * Preview player UI
  */
 public class PreviewPlayerActivityFragment extends Fragment {
-    private static final String LOG_TAG = PreviewPlayerActivityFragment.class.getSimpleName();
+    private static final String LOG_TAG = LogUtils.makeLogTag(PreviewPlayerActivityFragment.class);
     private static final String POSITION_KEY = "position";
     PreviewPlayerActivity mActivity;
     private TextView mAlbumText;
@@ -91,7 +91,7 @@ public class PreviewPlayerActivityFragment extends Fragment {
 
         if ((mNext == null) || (mPrev == null) || (mPlay == null)) {
             // If any of these are null, then something is wrong
-            Log.e(LOG_TAG, "ERROR: One or more button widgets were not found!");
+            LogUtils.LOGE(LOG_TAG, "ERROR: One or more button widgets were not found!");
         } else {
             mNext.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -203,7 +203,7 @@ public class PreviewPlayerActivityFragment extends Fragment {
     }
 
     public void updateViews(Intent intent) {
-        Log.d(LOG_TAG, "updateViews");
+        LogUtils.LOGV(LOG_TAG, "updateViews");
         if (mAlbumText != null) {
             mAlbumText.setText(intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_ALBUM));
         }

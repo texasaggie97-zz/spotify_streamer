@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.markesilva.spotifystreamer.MediaPlayerService;
@@ -24,7 +23,7 @@ import java.io.IOException;
 public class NotificationHelper {
     public static final int NOTIFICATION_ID = 100;
 
-    private static final String LOG_TAG = NotificationHelper.class.getSimpleName();
+    private static final String LOG_TAG = LogUtils.makeLogTag(NotificationHelper.class);
     private static Activity mActivity;
     private static NotificationCompat.Builder mBuilder;
     private static NotificationManager mNotificationManager;
@@ -33,7 +32,7 @@ public class NotificationHelper {
     private static boolean mUpdatedAtLeastOnce = false;
 
     public NotificationHelper(Activity a) {
-        Log.d(LOG_TAG, "NotificationHelper");
+        LogUtils.LOGV(LOG_TAG, "NotificationHelper");
     }
 
     public static void setActivity(Activity a) {
@@ -41,7 +40,7 @@ public class NotificationHelper {
     }
 
     public static void configureNotification(boolean showNotification) {
-        Log.d(LOG_TAG, "configureNotification");
+        LogUtils.LOGV(LOG_TAG, "configureNotification");
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         mBuilder = new NotificationCompat.Builder(mActivity).setSmallIcon(R.mipmap.ic_launcher).setContent(remoteViews);
 
@@ -83,7 +82,7 @@ public class NotificationHelper {
 
     // This function should not run on the main thread
     public static void updateNotificationViews(Intent intent, boolean showNotification) {
-        Log.d(LOG_TAG, "updateNotificationViews");
+        LogUtils.LOGV(LOG_TAG, "updateNotificationViews");
         // Notification update
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         remoteViews.setTextViewText(R.id.notification_track, intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_TRACK));
@@ -97,7 +96,7 @@ public class NotificationHelper {
                 remoteViews.setImageViewBitmap(R.id.notification_thumbnail, b);
             } catch (IOException e) {
                 remoteViews.setImageViewResource(R.id.notification_thumbnail, R.drawable.default_image);
-                Log.e(LOG_TAG, e.getMessage(), e);
+                LogUtils.LOGE(LOG_TAG, e.getMessage(), e);
             }
         }
 
@@ -109,7 +108,7 @@ public class NotificationHelper {
     }
 
     public static void updatePlayButton(Intent intent, boolean showNotification) {
-        Log.d(LOG_TAG, "updatePlayButton");
+        LogUtils.LOGV(LOG_TAG, "updatePlayButton");
 
         RemoteViews remoteViews = new RemoteViews(mActivity.getPackageName(), R.layout.notification);
         MediaPlayerService.tPlayerState playerState = (MediaPlayerService.tPlayerState) intent.getSerializableExtra(MediaPlayerService.BROADCAST_STATE_UPDATED_STATE);

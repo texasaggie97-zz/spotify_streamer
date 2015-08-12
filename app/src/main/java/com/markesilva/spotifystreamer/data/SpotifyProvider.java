@@ -1,8 +1,6 @@
 package com.markesilva.spotifystreamer.data;
 
 import android.annotation.TargetApi;
-import android.support.annotation.NonNull;
-
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -10,7 +8,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.util.Log;
+import android.support.annotation.NonNull;
+
+import com.markesilva.spotifystreamer.utils.LogUtils;
 
 /**
  * Created by marke on 7/18/2015.
@@ -19,11 +19,18 @@ import android.util.Log;
  */
 public class SpotifyProvider extends ContentProvider {
 
-    // The URI Matcher used by this content provider.
-    private static final UriMatcher sUriMatcher = buildUriMatcher();
-    private static final String LOG_TAG = SpotifyProvider.class.getSimpleName();
-    private SpotifyDbHelper mOpenHelper;
-
+    //queries.query_string = ?
+    public static final String sQueryStringSelection =
+            SpotifyContract.SearchQueryEntry.TABLE_NAME +
+                    "." + SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING + " = ? ";
+    //artists.artist_name = ?
+    public static final String sArtistStringSelection =
+            SpotifyContract.ArtistEntry.TABLE_NAME +
+                    "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME + " = ? ";
+    //artists.spotify_artist_id = ?
+    public static final String sArtistIdStringSelection =
+            SpotifyContract.ArtistEntry.TABLE_NAME +
+                    "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID + " = ? ";
     static final int QUERIES = 100;
     static final int QUERIES_WITH_QUERY = 101;
     static final int ARTISTS = 200;
@@ -34,8 +41,11 @@ public class SpotifyProvider extends ContentProvider {
     static final int TRACKS_WITH_ARTIST = 301;
     static final int TRACKS_WITH_QUERY = 302;
     static final int TRACKS_WITH_ARTIST_ID = 303;
-
+    // The URI Matcher used by this content provider.
+    private static final UriMatcher sUriMatcher = buildUriMatcher();
+    private static final String LOG_TAG = LogUtils.makeLogTag(SpotifyProvider.class);
     private static final SQLiteQueryBuilder sArtistsSettingQueryBuilder;
+    private static final SQLiteQueryBuilder sTracksSettingQueryBuilder;
 
     static{
         sArtistsSettingQueryBuilder = new SQLiteQueryBuilder();
@@ -51,9 +61,7 @@ public class SpotifyProvider extends ContentProvider {
                         "." + SpotifyContract.SearchQueryEntry._ID);
     }
 
-    private static final SQLiteQueryBuilder sTracksSettingQueryBuilder;
-
-    static{
+    static {
         sTracksSettingQueryBuilder = new SQLiteQueryBuilder();
 
         String tables =
@@ -74,20 +82,7 @@ public class SpotifyProvider extends ContentProvider {
         sTracksSettingQueryBuilder.setTables(tables);
     }
 
-    //queries.query_string = ?
-    public static final String sQueryStringSelection =
-            SpotifyContract.SearchQueryEntry.TABLE_NAME+
-                    "." + SpotifyContract.SearchQueryEntry.COLUMN_QUERY_STRING + " = ? ";
-
-    //artists.artist_name = ?
-    public static final String sArtistStringSelection =
-            SpotifyContract.ArtistEntry.TABLE_NAME+
-                    "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_NAME+ " = ? ";
-
-    //artists.spotify_artist_id = ?
-    public static final String sArtistIdStringSelection =
-            SpotifyContract.ArtistEntry.TABLE_NAME+
-                    "." + SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID+ " = ? ";
+    private SpotifyDbHelper mOpenHelper;
 
     static UriMatcher buildUriMatcher() {
         // I know what you're thinking.  Why create a UriMatcher when you can use regular
@@ -283,7 +278,7 @@ public class SpotifyProvider extends ContentProvider {
             case TRACKS_WITH_ARTIST_ID:
             {
                 String i = SpotifyContract.ArtistEntry.getArtistIdFromUri(uri);
-                Log.v(LOG_TAG, "Searching for tracks with artist id " + i);
+                LogUtils.LOGV(LOG_TAG, "Searching for tracks with artist id " + i);
                 retCursor = sTracksSettingQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                         projection,
                         sArtistIdStringSelection,

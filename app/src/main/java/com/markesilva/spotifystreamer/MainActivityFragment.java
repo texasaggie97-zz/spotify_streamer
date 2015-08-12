@@ -1,6 +1,5 @@
 package com.markesilva.spotifystreamer;
 
-import android.support.v4.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,9 +8,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +20,7 @@ import android.widget.Toast;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract;
 import com.markesilva.spotifystreamer.data.SpotifyProvider;
+import com.markesilva.spotifystreamer.utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,13 +41,11 @@ import retrofit.RetrofitError;
  */
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    final private String LOG_TAG = MainActivityFragment.class.getSimpleName();
-    private String mArtistQuery = "zzz";
-    private ArtistListAdapter mArtistListAdapter = null;
-    private ListView mArtistListView = null;
-    private SpotifyApi mSpotifyApi = null;
-    private SpotifyService mSpotify = null;
-
+    // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
+    static final int COL_QEURY_ID = 0;
+    static final int COL_ARTIST_NAME = 1;
+    static final int COL_ARTIST_SPOTIFY_ID = 2;
+    static final int COL_ARTIST_THUMBNAIL_URL = 3;
     private static final int ARTIST_LOADER = 0;
     // Specify columns we need
     private static final String[] ARTIST_COLUMNS = {
@@ -56,21 +54,12 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID,
             SpotifyContract.ArtistEntry.COLUMN_THUMBNAIL_URL
     };
-
-    // These indices are ties to ARTIST_COLUMNS. If that changes, these must change too
-    static final int COL_QEURY_ID = 0;
-    static final int COL_ARTIST_NAME = 1;
-    static final int COL_ARTIST_SPOTIFY_ID = 2;
-    static final int COL_ARTIST_THUMBNAIL_URL = 3;
-
-    public interface Callback {
-        // The activity needs to be the one to dispatch this since it can be to another
-        // activity via and intent or updating a different fragment in twopane mode
-        void onItemSelected(String artistName, String artistSpotifyId);
-
-        // We need to tell the activity who we are
-        void setArtistListFragment(MainActivityFragment frag);
-    }
+    final private String LOG_TAG = LogUtils.makeLogTag(MainActivityFragment.class);
+    private String mArtistQuery = "zzz";
+    private ArtistListAdapter mArtistListAdapter = null;
+    private ListView mArtistListView = null;
+    private SpotifyApi mSpotifyApi = null;
+    private SpotifyService mSpotify = null;
 
     public MainActivityFragment() {
     }
@@ -91,7 +80,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         // Set up the adapter for the list view
         mArtistListView = (ListView) rootView.findViewById(R.id.artist_list);
         if (mArtistListView == null) {
-            Log.v(LOG_TAG, "mArtistListView is null!?");
+            LogUtils.LOGV(LOG_TAG, "mArtistListView is null!?");
         } else {
             mArtistListView.setAdapter(mArtistListAdapter);
             mArtistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -131,7 +120,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         Uri artistListUri = SpotifyContract.ArtistEntry.buildArtistsWithQuery(mArtistQuery);
-        Log.v(LOG_TAG, "mArtistQuery was " + mArtistQuery);
+        LogUtils.LOGV(LOG_TAG, "mArtistQuery was " + mArtistQuery);
         return new CursorLoader(getActivity(),
                 artistListUri,
                 ARTIST_COLUMNS,
@@ -155,6 +144,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         mArtistQuery = artist;
         artistTask.execute(artist);
         getLoaderManager().restartLoader(ARTIST_LOADER, null, this);
+    }
+
+    public interface Callback {
+        // The activity needs to be the one to dispatch this since it can be to another
+        // activity via and intent or updating a different fragment in twopane mode
+        void onItemSelected(String artistName, String artistSpotifyId);
+
+        // We need to tell the activity who we are
+        void setArtistListFragment(MainActivityFragment frag);
     }
 
     // We need to do the actual web query on a thread other than the UI thread. We use AsyncTask for this
@@ -190,7 +188,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                         offset += p.artists.limit;
                     }
                 } catch (RetrofitError e) {
-                    Log.e(LOG_TAG, "Execption getting artist info" + e);
+                    LogUtils.LOGE(LOG_TAG, "Execption getting artist info" + e);
                 }
             } while ((p != null) && (p.artists.next != null) && (offset < 500));
 
@@ -254,7 +252,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                     c.put(SpotifyContract.ArtistEntry.COLUMN_ARTIST_SPOTIFY_ID, a.id);
 
                     cvVector.add(c);
-                    Log.v(LOG_TAG, "Artist = " + a.name);
+                    LogUtils.LOGV(LOG_TAG, "Artist = " + a.name);
                 }
 
                 ContentValues[] cvArray = new ContentValues[cvVector.size()];
@@ -263,7 +261,7 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
                         SpotifyContract.ArtistEntry.CONTENT_URI,
                         cvArray);
 
-                Log.d(LOG_TAG, "GetArtistInfoTask Complete. " + inserted + " records inserted");
+                LogUtils.LOGV(LOG_TAG, "GetArtistInfoTask Complete. " + inserted + " records inserted");
             }
 
             if ((artists == null) || (artists.size() == 0)) {

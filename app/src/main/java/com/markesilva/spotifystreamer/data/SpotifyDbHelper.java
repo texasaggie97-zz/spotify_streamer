@@ -5,25 +5,24 @@ package com.markesilva.spotifystreamer.data;
  *
  * Helper class to encapsulate DB access
  */
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract.ArtistEntry;
-import com.markesilva.spotifystreamer.data.SpotifyContract.TrackEntry;
 import com.markesilva.spotifystreamer.data.SpotifyContract.SearchQueryEntry;
+import com.markesilva.spotifystreamer.data.SpotifyContract.TrackEntry;
+import com.markesilva.spotifystreamer.utils.LogUtils;
 
 /**
  * Manages a local database for Spotify data.
  */
 public class SpotifyDbHelper extends SQLiteOpenHelper {
-    private static final String LOG_TAG = SpotifyDbHelper.class.getSimpleName();
-
+    static final String DATABASE_NAME = "spotify.db";
+    private static final String LOG_TAG = LogUtils.makeLogTag(SpotifyDbHelper.class);
     // If you change the database schema, you must increment the database version.
     private static final int DATABASE_VERSION = 1;
-
-    static final String DATABASE_NAME = "spotify.db";
 
     public SpotifyDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -70,11 +69,11 @@ public class SpotifyDbHelper extends SQLiteOpenHelper {
 
                 " );";
 
-        Log.v(LOG_TAG, SQL_CREATE_QUERIES_TABLE);
+        LogUtils.LOGV(LOG_TAG, SQL_CREATE_QUERIES_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_QUERIES_TABLE);
-        Log.v(LOG_TAG, SQL_CREATE_ARTIST_TABLE);
+        LogUtils.LOGV(LOG_TAG, SQL_CREATE_ARTIST_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ARTIST_TABLE);
-        Log.v(LOG_TAG, SQL_CREATE_TRACK_TABLE);
+        LogUtils.LOGV(LOG_TAG, SQL_CREATE_TRACK_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_TRACK_TABLE);
     }
 

@@ -14,7 +14,6 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +26,7 @@ import android.widget.Toast;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract;
 import com.markesilva.spotifystreamer.data.SpotifyProvider;
+import com.markesilva.spotifystreamer.utils.LogUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
@@ -59,7 +59,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             SpotifyContract.TrackEntry.COLUMN_IMAGE_URL,
             SpotifyContract.TrackEntry.COLUMN_TRACK_NAME,
     };
-    final private String LOG_TAG = ArtistTracksActivityFragment.class.getSimpleName();
+    final private String LOG_TAG = LogUtils.makeLogTag(ArtistTracksActivityFragment.class);
     SpotifyApi mSpotifyApi = null;
     SpotifyService mSpotify = null;
     TrackListAdapter mTrackListAdapter = null;
@@ -80,7 +80,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
             mArtistName = args.getString(ARTIST_NAME);
             mArtistId = args.getString(ARTIST_ID);
 
-            Log.v(LOG_TAG, "Starting from intent: " + mArtistName);
+            LogUtils.LOGV(LOG_TAG, "Starting from intent: " + mArtistName);
             AppCompatActivity a = ((AppCompatActivity) getActivity());
             if (a != null) {
                 ActionBar b = a.getSupportActionBar();
@@ -98,7 +98,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
         // Set up the adapter for the list view
         mTrackListView = (ListView) rootView.findViewById(R.id.track_list);
         if (mTrackListView == null) {
-            Log.v(LOG_TAG, "mTrackListView is null!?");
+            LogUtils.LOGV(LOG_TAG, "mTrackListView is null!?");
         } else {
             mTrackListView.setAdapter(mTrackListAdapter);
             mTrackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -147,7 +147,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         Uri trackListUri = SpotifyContract.TrackEntry.buildTracksWithArtistId(mArtistId);
-        Log.v(LOG_TAG, "Query Uri == " + trackListUri);
+        LogUtils.LOGV(LOG_TAG, "Query Uri == " + trackListUri);
         return new CursorLoader(getActivity(),
                 trackListUri,
                 TRACK_COLUMNS,
@@ -158,7 +158,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        Log.d(LOG_TAG, "Loader complete. " + cursor.getCount() + " records found");
+        LogUtils.LOGV(LOG_TAG, "Loader complete. " + cursor.getCount() + " records found");
         mTrackListAdapter.swapCursor(cursor);
     }
 
@@ -198,7 +198,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                 options.put("country", locale);
                 p = mSpotify.getArtistTopTrack(artistId[0], options);
             } catch (Exception e) {
-                Log.e(LOG_TAG, "Execption getting artist info" + e);
+                LogUtils.LOGE(LOG_TAG, "Execption getting artist info" + e);
             }
 
             return p;
@@ -250,7 +250,7 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                     cursor.moveToFirst();
                     int idx = cursor.getColumnIndex(SpotifyContract.ArtistEntry._ID);
                     artistRowId = cursor.getInt(idx);
-                    Log.v(LOG_TAG, "Artist ID: " + artistRowId);
+                    LogUtils.LOGV(LOG_TAG, "Artist ID: " + artistRowId);
                 }
                 cursor.close();
 
@@ -291,13 +291,13 @@ public class ArtistTracksActivityFragment extends Fragment implements LoaderMana
                     c.put(SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL, t.preview_url);
 
                     cvVector.add(c);
-                    Log.v(LOG_TAG, "Track = " + t.name);
+                    LogUtils.LOGV(LOG_TAG, "Track = " + t.name);
                 }
 
                 ContentValues[] cvArray = new ContentValues[cvVector.size()];
                 cvVector.toArray(cvArray);
                 int inserted = mContext.getContentResolver().bulkInsert(SpotifyContract.TrackEntry.CONTENT_URI, cvArray);
-                Log.d(LOG_TAG, "GetTrackInfoTask complete. " + inserted + " records inserted");
+                LogUtils.LOGV(LOG_TAG, "GetTrackInfoTask complete. " + inserted + " records inserted");
             }
 
             if ((tracks == null) || (tracks.tracks.size() == 0)) {

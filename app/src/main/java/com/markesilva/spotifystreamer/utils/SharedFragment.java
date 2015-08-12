@@ -9,7 +9,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +27,7 @@ import com.markesilva.spotifystreamer.R;
  * Utility class for helping with relaunching the preview player from multiple places
  */
 public class SharedFragment extends Fragment {
-    private static final String LOG_TAG = SharedFragment.class.getSimpleName();
+    private static final String LOG_TAG = LogUtils.makeLogTag(SharedFragment.class);
 
     // Handling the media player service
     private MediaPlayerService.tPlayerState mPlayerState;
@@ -61,7 +60,7 @@ public class SharedFragment extends Fragment {
     }
 
     public void updateTrackInfo(Intent intent) {
-        Log.d(LOG_TAG, "updateTrackInfo");
+        LogUtils.LOGV(LOG_TAG, "updateTrackInfo");
         mTrackName = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_TRACK);
         mArtistName = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_ARTIST);
         mTrackUrl = intent.getStringExtra(MediaPlayerService.BROADCAST_SONG_UPDATED_TRACK_URL);
@@ -94,14 +93,14 @@ public class SharedFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d(LOG_TAG, "onCreateView");
+        LogUtils.LOGV(LOG_TAG, "onCreateView");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        Log.d(LOG_TAG, "onCreateOptionsMenu");
+        LogUtils.LOGV(LOG_TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.shared_menu, menu);
 
         // Retrieve the share menu item
@@ -130,7 +129,7 @@ public class SharedFragment extends Fragment {
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(LOG_TAG, "onOptionsItemSelected");
+        LogUtils.LOGV(LOG_TAG, "onOptionsItemSelected");
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -148,7 +147,7 @@ public class SharedFragment extends Fragment {
     }
 
     public boolean relauchPlayer(MenuItem item) {
-        Log.d(LOG_TAG, "relauchPlayer");
+        LogUtils.LOGV(LOG_TAG, "relauchPlayer");
         if (mPlayerState != MediaPlayerService.tPlayerState.idle) {
             Intent playerIntent = new Intent(getActivity(), PreviewPlayerActivity.class);
             getActivity().startActivity(playerIntent);

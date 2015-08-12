@@ -11,20 +11,20 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
 
+import com.markesilva.spotifystreamer.utils.LogUtils;
 import com.markesilva.spotifystreamer.utils.NotificationHelper;
 
 
 public class MainActivity extends AppCompatActivity implements MainActivityFragment.Callback {
 
     private static final String ARTISTTRACKFRAGMENT_TAG = "ATFTAG";
-    final private String LOG_TAG = MainActivity.class.getSimpleName();
+    final private String LOG_TAG = LogUtils.makeLogTag(MainActivity.class);
     private MainActivityFragment mFrag;
     private SearchView mSearch;
 
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(LOG_TAG, "onReceive");
+            LogUtils.LOGV(LOG_TAG, "onReceive");
             HandleBroadcast h = new HandleBroadcast(intent, mActivity);
             h.execute();
         }
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(LOG_TAG, "onCreate");
+        LogUtils.LOGV(LOG_TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
             @Override
             public boolean onQueryTextSubmit(String query) {
                 if (mFrag != null) {
-                    Log.d(LOG_TAG, "onQueryTextSubmit");
+                    LogUtils.LOGV(LOG_TAG, "onQueryTextSubmit");
                     mFrag.updateArtistList(query.trim());
                 }
                 return false;
@@ -97,13 +97,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
     }
 
     public void setArtistListFragment(MainActivityFragment frag) {
-        Log.d(LOG_TAG, "setArtistListFragment");
+        LogUtils.LOGV(LOG_TAG, "setArtistListFragment");
         mFrag = frag;
     }
 
     @Override
     public void onStart() {
-        Log.d(LOG_TAG, "onStart");
+        LogUtils.LOGV(LOG_TAG, "onStart");
         super.onStart();
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_SONG_UPDATED));
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(MediaPlayerService.BROADCAST_STATE_UPDATED));
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public void onDestroy() {
-        Log.d(LOG_TAG, "onDestroy");
+        LogUtils.LOGV(LOG_TAG, "onDestroy");
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         if (isFinishing()) {
@@ -122,13 +122,13 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public void onNewIntent(Intent intent) {
-        Log.d(LOG_TAG, "onNewIntent");
+        LogUtils.LOGV(LOG_TAG, "onNewIntent");
         setIntent(intent);
         handleIntent(intent);
     }
 
     private void handleIntent(Intent intent) {
-        Log.d(LOG_TAG, "handleIntent");
+        LogUtils.LOGV(LOG_TAG, "handleIntent");
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
             MainActivityFragment frag = (MainActivityFragment) getSupportFragmentManager().findFragmentById(R.id.main_activity_fragment);
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.d(LOG_TAG, "onCreateOptionsMenu");
+        LogUtils.LOGV(LOG_TAG, "onCreateOptionsMenu");
         // Inflate the menu; this adds items to the action bar if it is present.
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(LOG_TAG, "onOptionsItemSelected");
+        LogUtils.LOGV(LOG_TAG, "onOptionsItemSelected");
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
 
     @Override
     public void onItemSelected(String artistName, String artistSpotifyId) {
-        Log.d(LOG_TAG, "onItemSelected");
+        LogUtils.LOGV(LOG_TAG, "onItemSelected");
         if (mTwoPane) {
             // If we are on a large screen, add or replace the track list fragment
             Bundle args = new Bundle();
@@ -191,14 +191,14 @@ public class MainActivity extends AppCompatActivity implements MainActivityFragm
         private Activity mActivity;
 
         public HandleBroadcast(Intent intent, Activity activity) {
-            Log.d(LOG_TAG, "HandleBroadcast");
+            LogUtils.LOGV(LOG_TAG, "HandleBroadcast");
             mActivity = activity;
             mIntent = intent;
         }
 
         @Override
         protected Void doInBackground(Void... params) {
-            Log.d(LOG_TAG, "doInBackground");
+            LogUtils.LOGV(LOG_TAG, "doInBackground");
             String action = mIntent.getAction();
             if (action != null) {
                 switch (action) {

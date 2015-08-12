@@ -6,6 +6,7 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
+import com.markesilva.spotifystreamer.utils.LogUtils;
 import com.markesilva.spotifystreamer.utils.NotificationHelper;
 
 /**
@@ -14,18 +15,7 @@ import com.markesilva.spotifystreamer.utils.NotificationHelper;
  * Fragment for preferences
  */
 public class SettingsFragment extends PreferenceFragment {
-    private final static String LOG_TAG = SettingsFragment.class.getSimpleName();
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // Load the preferences from an XML resource
-        addPreferencesFromResource(R.xml.pref_main);
-        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_notification_key)));
-        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_spotify_locale_key)));
-    }
-
+    private final static String LOG_TAG = LogUtils.makeLogTag(SettingsFragment.class);
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
@@ -56,6 +46,16 @@ public class SettingsFragment extends PreferenceFragment {
             return true;
         }
     };
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Load the preferences from an XML resource
+        addPreferencesFromResource(R.xml.pref_main);
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_notification_key)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_spotify_locale_key)));
+    }
 
     /**
      * Binds a preference's summary to its value. More specifically, when the

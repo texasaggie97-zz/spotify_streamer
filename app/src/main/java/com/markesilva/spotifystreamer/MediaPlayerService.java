@@ -12,10 +12,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.markesilva.spotifystreamer.data.SpotifyContract;
+import com.markesilva.spotifystreamer.utils.LogUtils;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -66,7 +66,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     static final int COL_TRACK_NAME = 4;
     static final int COL_ARTIST_NAME = 5;
     // Private or override items
-    private static final String LOG_TAG = MediaPlayerService.class.getSimpleName();
+    private static final String LOG_TAG = LogUtils.makeLogTag(MediaPlayerService.class);
     private static final String[] TRACK_COLUMNS = {
             SpotifyContract.TrackEntry.COLUMN_PREVIEW_URL,
             SpotifyContract.TrackEntry.COLUMN_ALBUM_NAME,
@@ -85,20 +85,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(LOG_TAG, "onBind");
+        LogUtils.LOGV(LOG_TAG, "onBind");
         return mMusicBind;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d(LOG_TAG, "onUnbind");
+        LogUtils.LOGV(LOG_TAG, "onUnbind");
         mMediaPlayer.stop();
         mMediaPlayer.release();
         return false;
     }
 
     protected void handleIntent(Intent intent) {
-        Log.v(LOG_TAG, "Intent: " + intent);
+        LogUtils.LOGV(LOG_TAG, "Intent: " + intent);
         String action = intent.getAction();
         if (action != null) {
             switch(action) {
@@ -142,7 +142,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void setSongs(Uri u, int pos) {
-        Log.d(LOG_TAG, "setSongs");
+        LogUtils.LOGV(LOG_TAG, "setSongs");
         // Nothing to do
         if ((u == null) || (pos == -1)) {
             sendUpdates();
@@ -168,12 +168,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void playSong() {
-        Log.d(LOG_TAG, "playSong");
+        LogUtils.LOGV(LOG_TAG, "playSong");
         try {
             if (mPosition != -1) {
                 mCursor.moveToPosition(mPosition);
             } else {
-                Log.e(LOG_TAG, "ERROR: Invalid position");
+                LogUtils.LOGE(LOG_TAG, "ERROR: Invalid position");
             }
             String previewUrl = mCursor.getString(COL_TRACK_PREVIEW_URL);
             mMediaPlayer.reset();
@@ -184,18 +184,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             sendStateUpdate();
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), "Preview could not be loaded", Toast.LENGTH_LONG).show();
-            Log.e(LOG_TAG, e.getMessage(), e);
+            LogUtils.LOGE(LOG_TAG, e.getMessage(), e);
         }
     }
 
     private void seekTo(int p) {
-        Log.d(LOG_TAG, "seekTo");
+        LogUtils.LOGV(LOG_TAG, "seekTo");
         mMediaPlayer.seekTo(p);
         sendPositionUpdate();
     }
 
     private void nextSong() {
-        Log.d(LOG_TAG, "nextSong");
+        LogUtils.LOGV(LOG_TAG, "nextSong");
         if (!mCursor.moveToNext()) {
             mCursor.moveToFirst();
         }
@@ -206,7 +206,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void prevSong() {
-        Log.d(LOG_TAG, "prevSong");
+        LogUtils.LOGV(LOG_TAG, "prevSong");
         if (!mCursor.moveToPrevious()) {
             mCursor.moveToLast();
         }
@@ -217,7 +217,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void pausePlay() {
-        Log.d(LOG_TAG, "pausePlay");
+        LogUtils.LOGV(LOG_TAG, "pausePlay");
         if (mPlayerState == tPlayerState.playing) {
             mMediaPlayer.pause();
             mPlayerState = tPlayerState.paused;
@@ -242,13 +242,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public tPlayerState isPlaying() {
-        Log.d(LOG_TAG, "isPlaying");
+        LogUtils.LOGV(LOG_TAG, "isPlaying");
         return mPlayerState;
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        Log.d(LOG_TAG, "onCompletion");
+        LogUtils.LOGV(LOG_TAG, "onCompletion");
         if (!mCursor.moveToNext()) {
             mCursor.moveToFirst();
         }
@@ -260,62 +260,62 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        Log.d(LOG_TAG, "OnError - Error code: " + what + " Extra code: " + extra);
+        LogUtils.LOGV(LOG_TAG, "OnError - Error code: " + what + " Extra code: " + extra);
 
         switch (what) {
             case -1004:
-                Log.d(LOG_TAG, "MEDIA_ERROR_IO");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_IO");
                 break;
             case -1007:
-                Log.d(LOG_TAG, "MEDIA_ERROR_MALFORMED");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_MALFORMED");
                 break;
             case 200:
-                Log.d(LOG_TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK");
                 break;
             case 100:
-                Log.d(LOG_TAG, "MEDIA_ERROR_SERVER_DIED");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_SERVER_DIED");
                 break;
             case -110:
-                Log.d(LOG_TAG, "MEDIA_ERROR_TIMED_OUT");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_TIMED_OUT");
                 break;
             case 1:
-                Log.d(LOG_TAG, "MEDIA_ERROR_UNKNOWN");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_UNKNOWN");
                 break;
             case -1010:
-                Log.d(LOG_TAG, "MEDIA_ERROR_UNSUPPORTED");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_ERROR_UNSUPPORTED");
                 break;
             default:
-                Log.d(LOG_TAG, "UNKNOWN WHAT");
+                LogUtils.LOGV(LOG_TAG, "UNKNOWN WHAT");
                 break;
         }
 
         switch (extra) {
             case 800:
-                Log.d(LOG_TAG, "MEDIA_INFO_BAD_INTERLEAVING");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_BAD_INTERLEAVING");
                 break;
             case 702:
-                Log.d(LOG_TAG, "MEDIA_INFO_BUFFERING_END");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_BUFFERING_END");
                 break;
             case 701:
-                Log.d(LOG_TAG, "MEDIA_INFO_METADATA_UPDATE");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_METADATA_UPDATE");
                 break;
             case 802:
-                Log.d(LOG_TAG, "MEDIA_INFO_METADATA_UPDATE");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_METADATA_UPDATE");
                 break;
             case 801:
-                Log.d(LOG_TAG, "MEDIA_INFO_NOT_SEEKABLE");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_NOT_SEEKABLE");
                 break;
             case 1:
-                Log.d(LOG_TAG, "MEDIA_INFO_UNKNOWN");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_UNKNOWN");
                 break;
             case 3:
-                Log.d(LOG_TAG, "MEDIA_INFO_VIDEO_RENDERING_START");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_VIDEO_RENDERING_START");
                 break;
             case 700:
-                Log.d(LOG_TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING");
+                LogUtils.LOGV(LOG_TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING");
                 break;
             default:
-                Log.d(LOG_TAG, "UNKNOWN EXTRA");
+                LogUtils.LOGV(LOG_TAG, "UNKNOWN EXTRA");
                 break;
         }
         return true;
@@ -323,7 +323,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        Log.d(LOG_TAG, "onPrepared");
+        LogUtils.LOGV(LOG_TAG, "onPrepared");
         mPlayerState = tPlayerState.playing;
         sendStateUpdate();
         sendDurationUpdate();
@@ -334,7 +334,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onCreate() {
-        Log.d(LOG_TAG, "onCreate");
+        LogUtils.LOGV(LOG_TAG, "onCreate");
         super.onCreate();
         mMediaPlayer = new MediaPlayer();
         initMusicPlayer();
@@ -342,7 +342,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public void onDestroy() {
-        Log.d(LOG_TAG, "onDestroy");
+        LogUtils.LOGV(LOG_TAG, "onDestroy");
         super.onDestroy();
         if (mMediaObserver != null) {
             mMediaObserver.stop();
@@ -362,7 +362,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void initMusicPlayer() {
-        Log.d(LOG_TAG, "initMusicPlayer");
+        LogUtils.LOGV(LOG_TAG, "initMusicPlayer");
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnPreparedListener(this);
@@ -371,7 +371,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void sendSongUpdate() {
-        Log.d(LOG_TAG, "sendSongUpdate");
+        LogUtils.LOGV(LOG_TAG, "sendSongUpdate");
         if (mCursor != null) {
             Intent intent = new Intent(BROADCAST_SONG_UPDATED);
 
@@ -391,7 +391,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void sendStateUpdate() {
-        Log.d(LOG_TAG, "sendStateUpdate");
+        LogUtils.LOGV(LOG_TAG, "sendStateUpdate");
         Intent intent = new Intent(BROADCAST_STATE_UPDATED);
 
         // Add the data
@@ -402,7 +402,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     private void sendPositionUpdate() {
         // Too noisy
-        // Log.d(LOG_TAG, "sendPositionUpdate");
+        // LogUtils.LOGV(LOG_TAG, "sendPositionUpdate");
         if (mPlayerState != tPlayerState.idle) {
             Intent intent = new Intent(BROADCAST_POSITION_UPDATED);
 
@@ -414,7 +414,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     private void sendDurationUpdate() {
-        Log.d(LOG_TAG, "sendDurationUpdate");
+        LogUtils.LOGV(LOG_TAG, "sendDurationUpdate");
         if (mPlayerState != tPlayerState.idle) {
             Intent intent = new Intent(BROADCAST_DURATION_UPDATED);
 
@@ -440,7 +440,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public class MusicBinder extends Binder {
         public MediaPlayerService getService() {
-            Log.d(LOG_TAG, "getService");
+            LogUtils.LOGV(LOG_TAG, "getService");
             return MediaPlayerService.this;
         }
     }
@@ -460,7 +460,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
-                        Log.e(LOG_TAG, e.getMessage(), e);
+                        LogUtils.LOGE(LOG_TAG, e.getMessage(), e);
                     }
                 }
             }
