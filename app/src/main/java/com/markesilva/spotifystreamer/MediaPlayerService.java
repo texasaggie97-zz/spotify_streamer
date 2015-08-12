@@ -169,8 +169,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     private void playSong() {
         Log.d(LOG_TAG, "playSong");
-        String previewUrl = mCursor.getString(COL_TRACK_PREVIEW_URL);
         try {
+            if (mPosition != -1) {
+                mCursor.moveToPosition(mPosition);
+            } else {
+                Log.e(LOG_TAG, "ERROR: Invalid position");
+            }
+            String previewUrl = mCursor.getString(COL_TRACK_PREVIEW_URL);
             mMediaPlayer.reset();
             mMediaPlayer.setDataSource(previewUrl);
             mMediaPlayer.prepareAsync();
